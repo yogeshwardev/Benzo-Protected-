@@ -31,6 +31,9 @@ jobs:
       - name: Prisma validate
         run: pnpm prisma:validate
 
+      - name: Prisma generate
+        run: pnpm prisma:generate
+
       - name: Type check
         run: pnpm typecheck
 
@@ -42,4 +45,3 @@ jobs:
 
       - name: Build
         run: pnpm build
-

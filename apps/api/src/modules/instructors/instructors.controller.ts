@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { JwtAuthGuard } from "../../common/rbac/jwt-auth.guard";
 import { Roles } from "../../common/rbac/roles.decorator";
 import { RolesGuard } from "../../common/rbac/roles.guard";
 import { CreateInstructorDto } from "./dto/create-instructor.dto";
 import { InstructorsService } from "./instructors.service";
 
 @Controller({ path: "instructors", version: "1" })
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class InstructorsController {
   constructor(private readonly instructorsService: InstructorsService) {}
 
@@ -21,4 +22,3 @@ export class InstructorsController {
     return this.instructorsService.createInstructor(dto);
   }
 }
-

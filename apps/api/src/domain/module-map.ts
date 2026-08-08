@@ -6,6 +6,7 @@ export const plannedBackendModules = [
   "admins",
   "courses",
   "schedules",
+  "enrollments",
   "live-classes",
   "attendance",
   "recordings",
@@ -28,4 +29,3 @@ export const plannedBackendModules = [
   "uploads",
   "health"
 ] as const;
-

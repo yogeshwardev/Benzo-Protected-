@@ -1,11 +1,15 @@
 import { ConflictException, Injectable } from "@nestjs/common";
 import { AccountStatus } from "@prisma/client";
+import { AuthService } from "../auth/auth.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { CreateAdminDto } from "./dto/create-admin.dto";
 
 @Injectable()
 export class AdminsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService
+  ) {}
 
   listAdmins() {
     return this.prisma.adminProfile.findMany({
@@ -24,7 +28,7 @@ export class AdminsService {
       throw new ConflictException("An account already exists for this email.");
     }
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email: dto.email.toLowerCase(),
         mobile: dto.mobile,
@@ -35,6 +39,10 @@ export class AdminsService {
       },
       select: { id: true, email: true, name: true, role: true, status: true }
     });
+
+    return {
+      user,
+      activation: await this.authService.createPasswordSetupToken(user.id)
+    };
   }
 }
-

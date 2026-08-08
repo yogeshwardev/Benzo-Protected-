@@ -1,6 +1,7 @@
-import { ConflictException, Injectable } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { AccountStatus } from "@prisma/client";
 import { customAlphabet } from "nanoid";
+import { AuthService } from "../auth/auth.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { CreateInstructorDto } from "./dto/create-instructor.dto";
 
@@ -8,7 +9,10 @@ const codeAlphabet = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 8);
 
 @Injectable()
 export class InstructorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService
+  ) {}
 
   listInstructors() {
     return this.prisma.instructorProfile.findMany({
@@ -31,7 +35,26 @@ export class InstructorsService {
       throw new ConflictException("An account already exists for this email.");
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const course = await this.prisma.course.findUnique({
+      where: { id: dto.courseId },
+      select: {
+        id: true,
+        assignments: {
+          where: { active: true },
+          select: { id: true }
+        }
+      }
+    });
+
+    if (!course) {
+      throw new NotFoundException("Course not found.");
+    }
+
+    if (course.assignments.length > 0) {
+      throw new ConflictException("This course already has an active instructor.");
+    }
+
+    const user = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           email: dto.email.toLowerCase(),
@@ -67,6 +90,10 @@ export class InstructorsService {
         status: user.status
       };
     });
+
+    return {
+      user,
+      activation: await this.authService.createPasswordSetupToken(user.id)
+    };
   }
 }
-

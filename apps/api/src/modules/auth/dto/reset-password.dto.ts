@@ -1,0 +1,12 @@
+import { IsString, Length, MinLength } from "class-validator";
+
+export class ResetPasswordDto {
+  @IsString()
+  @Length(20, 200)
+  token!: string;
+
+  @IsString()
+  @MinLength(8)
+  password!: string;
+}
+
