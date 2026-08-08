@@ -1,0 +1,19 @@
+{
+  "name": "@benzo/types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "echo types package has no tests yet"
+  },
+  "devDependencies": {
+    "@benzo/config": "workspace:*",
+    "typescript": "^5.9.2"
+  }
+}
+

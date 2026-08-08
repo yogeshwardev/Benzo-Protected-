@@ -1,0 +1,620 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+enum AccountStatus {
+  ACTIVE
+  PENDING_ACTIVATION
+  SUSPENDED
+}
+
+enum CourseDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum OrderStatus {
+  CREATED
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
+
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+enum WalletTransactionType {
+  REFERRAL_CREDIT
+  PURCHASE_DEBIT
+  WITHDRAWAL_RESERVE
+  WITHDRAWAL_DEBIT
+  WITHDRAWAL_REVERSAL
+  REFUND
+  ADMIN_ADJUSTMENT
+}
+
+enum LedgerStatus {
+  PENDING
+  SETTLED
+  REVERSED
+  FAILED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PAID
+  REJECTED
+  CANCELLED
+}
+
+enum AttendanceState {
+  PRESENT
+  PARTIAL
+  ABSENT
+}
+
+enum LiveClassStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+model User {
+  id                String                   @id @default(cuid())
+  email             String                   @unique
+  mobile            String?                  @unique
+  name              String
+  passwordHash      String?
+  role              UserRole
+  status            AccountStatus            @default(PENDING_ACTIVATION)
+  emailVerifiedAt   DateTime?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  adminProfile      AdminProfile?
+  studentProfile    StudentProfile?
+  instructorProfile InstructorProfile?
+  refreshTokens     RefreshToken[]
+  auditLogs         AuditLog[]               @relation("AuditActor")
+  notifications     Notification[]
+  chatMessages      ChatMessage[]
+  walletTxns        WalletTransaction[]
+  passwordResets    PasswordResetToken[]
+  emailTokens       EmailVerificationToken[]
+
+  @@index([role, status])
+}
+
+model AdminProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdBy String?
+  createdAt DateTime @default(now())
+}
+
+model StudentProfile {
+  id              String             @id @default(cuid())
+  userId          String             @unique
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentCode     String             @unique
+  referralCode    String             @unique
+  referredById    String?
+  referredBy      StudentProfile?    @relation("StudentReferrals", fields: [referredById], references: [id])
+  referralsMade   StudentProfile[]   @relation("StudentReferrals")
+  enrollments     Enrollment[]
+  orders          Order[]
+  referralsAsFrom Referral[]         @relation("ReferralFrom")
+  referralsAsTo   Referral[]         @relation("ReferralTo")
+  withdrawals     WithdrawalRequest[]
+  certificates    Certificate[]
+  createdAt       DateTime           @default(now())
+}
+
+model InstructorProfile {
+  id              String                       @id @default(cuid())
+  userId          String                       @unique
+  user            User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  instructorCode  String                       @unique
+  qualification   String
+  perClassSalary  Int
+  joiningDate     DateTime
+  bankMasked      String?
+  assignments     CourseInstructorAssignment[]
+  salaryItems     InstructorSalaryItem[]
+  salaryPayouts   InstructorSalaryPayout[]
+  createdAt       DateTime                     @default(now())
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  revokedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id          String                       @id @default(cuid())
+  title       String
+  slug        String                       @unique
+  shortDesc   String
+  fullDesc    String
+  thumbnail   String?
+  category    String
+  difficulty  CourseDifficulty             @default(BEGINNER)
+  priceInPaise Int
+  published   Boolean                      @default(false)
+  requirements String[]
+  outcomes     String[]
+  assignments CourseInstructorAssignment[]
+  schedules   CourseSchedule[]
+  enrollments Enrollment[]
+  orders      Order[]
+  lessons     Lesson[]
+  materials   Material[]
+  courseAssignments Assignment[]
+  quizzes     Quiz[]
+  liveClasses LiveClass[]
+  chatRooms   ChatRoom[]
+  certificates Certificate[]
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+
+  @@index([published, category])
+}
+
+model CourseInstructorAssignment {
+  id           String            @id @default(cuid())
+  courseId     String
+  course       Course            @relation(fields: [courseId], references: [id])
+  instructorId String
+  instructor   InstructorProfile @relation(fields: [instructorId], references: [id])
+  active       Boolean           @default(true)
+  assignedAt   DateTime          @default(now())
+  endedAt      DateTime?
+
+  @@index([courseId, active])
+  @@index([instructorId, active])
+}
+
+model CourseSchedule {
+  id          String      @id @default(cuid())
+  courseId    String
+  course      Course      @relation(fields: [courseId], references: [id])
+  dayOfWeek   Int
+  startMinute Int
+  endMinute   Int
+  timezone    String      @default("Asia/Kolkata")
+  active      Boolean     @default(true)
+  liveClasses LiveClass[]
+  createdAt   DateTime    @default(now())
+
+  @@index([courseId, active])
+}
+
+model Enrollment {
+  id          String         @id @default(cuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  courseId    String
+  course      Course         @relation(fields: [courseId], references: [id])
+  orderId     String         @unique
+  order       Order          @relation(fields: [orderId], references: [id])
+  enrolledAt  DateTime       @default(now())
+  active      Boolean        @default(true)
+  submissions AssignmentSubmission[]
+  quizAttempts QuizAttempt[]
+
+  @@unique([studentId, courseId])
+  @@index([courseId, active])
+}
+
+model Order {
+  id                    String         @id @default(cuid())
+  studentId             String
+  student               StudentProfile @relation(fields: [studentId], references: [id])
+  courseId              String
+  course                Course         @relation(fields: [courseId], references: [id])
+  status                OrderStatus    @default(CREATED)
+  baseAmountInPaise     Int
+  couponDiscountInPaise Int            @default(0)
+  referralDiscountInPaise Int          @default(0)
+  walletUsedInPaise     Int            @default(0)
+  finalAmountInPaise    Int
+  razorpayOrderId       String?        @unique
+  payments              Payment[]
+  enrollment            Enrollment?
+  referral              Referral?
+  invoice               Invoice?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([studentId, status])
+  @@index([courseId, status])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id])
+  provider          String        @default("RAZORPAY")
+  providerPaymentId String?       @unique
+  status            PaymentStatus
+  amountInPaise     Int
+  method            String?
+  capturedAt        DateTime?
+  createdAt         DateTime      @default(now())
+
+  @@index([orderId, status])
+}
+
+model RazorpayWebhookEvent {
+  id              String   @id @default(cuid())
+  providerEventId String   @unique
+  eventType       String
+  payload         Json
+  processedAt     DateTime?
+  failedAt        DateTime?
+  failureReason   String?
+  createdAt       DateTime @default(now())
+}
+
+model Coupon {
+  id                String             @id @default(cuid())
+  code              String             @unique
+  active            Boolean            @default(true)
+  discountInPaise   Int?
+  discountPercent   Int?
+  maxDiscountInPaise Int?
+  startsAt          DateTime?
+  endsAt            DateTime?
+  redemptions       CouponRedemption[]
+}
+
+model CouponRedemption {
+  id        String   @id @default(cuid())
+  couponId  String
+  coupon    Coupon   @relation(fields: [couponId], references: [id])
+  orderId   String   @unique
+  studentId String
+  createdAt DateTime @default(now())
+
+  @@index([couponId])
+  @@index([studentId])
+}
+
+model Referral {
+  id              String         @id @default(cuid())
+  referrerId      String
+  referrer        StudentProfile @relation("ReferralFrom", fields: [referrerId], references: [id])
+  referredId      String         @unique
+  referred        StudentProfile @relation("ReferralTo", fields: [referredId], references: [id])
+  qualifyingOrderId String?      @unique
+  qualifyingOrder Order?         @relation(fields: [qualifyingOrderId], references: [id])
+  status          ReferralStatus @default(PENDING)
+  completedAt     DateTime?
+  createdAt       DateTime       @default(now())
+
+  @@index([referrerId, status])
+}
+
+model WalletTransaction {
+  id             String                @id @default(cuid())
+  userId         String
+  user           User                  @relation(fields: [userId], references: [id])
+  amountInPaise  Int
+  type           WalletTransactionType
+  status         LedgerStatus          @default(PENDING)
+  referenceType  String
+  referenceId    String
+  createdAt      DateTime              @default(now())
+
+  @@unique([type, referenceType, referenceId])
+  @@index([userId, status])
+}
+
+model WithdrawalRequest {
+  id              String           @id @default(cuid())
+  studentId        String
+  student          StudentProfile   @relation(fields: [studentId], references: [id])
+  amountInPaise    Int
+  status           WithdrawalStatus @default(PENDING)
+  bankMasked       String
+  adminReference   String?
+  rejectionReason  String?
+  requestedAt      DateTime         @default(now())
+  resolvedAt       DateTime?
+
+  @@index([studentId, status])
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  title     String
+  position  Int
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, position])
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  title     String
+  r2Key     String
+  mimeType  String
+  sizeBytes Int
+  createdAt DateTime @default(now())
+}
+
+model Assignment {
+  id          String                 @id @default(cuid())
+  courseId    String
+  course      Course                 @relation(fields: [courseId], references: [id])
+  title       String
+  description String
+  dueAt       DateTime?
+  submissions AssignmentSubmission[]
+  createdAt   DateTime               @default(now())
+}
+
+model AssignmentSubmission {
+  id           String      @id @default(cuid())
+  assignmentId String
+  assignment   Assignment  @relation(fields: [assignmentId], references: [id])
+  enrollmentId String
+  enrollment   Enrollment  @relation(fields: [enrollmentId], references: [id])
+  submissionUrl String
+  status       String      @default("SUBMITTED")
+  feedback     String?
+  submittedAt  DateTime    @default(now())
+
+  @@index([assignmentId, status])
+}
+
+model Quiz {
+  id        String         @id @default(cuid())
+  courseId  String
+  course    Course         @relation(fields: [courseId], references: [id])
+  title     String
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+  createdAt DateTime       @default(now())
+}
+
+model QuizQuestion {
+  id             String @id @default(cuid())
+  quizId          String
+  quiz            Quiz   @relation(fields: [quizId], references: [id])
+  prompt          String
+  options         Json
+  correctOption   Int
+  explanation     String?
+  points          Int    @default(1)
+}
+
+model QuizAttempt {
+  id           String      @id @default(cuid())
+  quizId        String
+  quiz          Quiz        @relation(fields: [quizId], references: [id])
+  enrollmentId  String
+  enrollment    Enrollment  @relation(fields: [enrollmentId], references: [id])
+  answers       Json
+  score         Int
+  submittedAt   DateTime    @default(now())
+
+  @@index([quizId, enrollmentId])
+}
+
+model LiveClass {
+  id          String              @id @default(cuid())
+  courseId    String
+  course      Course              @relation(fields: [courseId], references: [id])
+  scheduleId  String?
+  schedule    CourseSchedule?     @relation(fields: [scheduleId], references: [id])
+  title       String
+  startsAt    DateTime
+  endsAt      DateTime
+  status      LiveClassStatus     @default(SCHEDULED)
+  livekitRoom String?             @unique
+  attendanceSessions AttendanceSession[]
+  attendanceSummaries AttendanceSummary[]
+  recordings  Recording[]
+  salaryItems InstructorSalaryItem[]
+
+  @@index([courseId, startsAt])
+}
+
+model AttendanceSession {
+  id          String    @id @default(cuid())
+  liveClassId String
+  liveClass   LiveClass @relation(fields: [liveClassId], references: [id])
+  userId      String
+  joinedAt    DateTime
+  leftAt      DateTime?
+  source      String    @default("LIVEKIT")
+
+  @@index([liveClassId, userId])
+}
+
+model AttendanceSummary {
+  id              String          @id @default(cuid())
+  liveClassId      String
+  liveClass        LiveClass       @relation(fields: [liveClassId], references: [id])
+  userId           String
+  attendedSeconds  Int
+  scheduledSeconds Int
+  percent          Int
+  state            AttendanceState
+  calculatedAt     DateTime        @default(now())
+
+  @@unique([liveClassId, userId])
+  @@index([userId, state])
+}
+
+model Recording {
+  id             String           @id @default(cuid())
+  liveClassId     String?
+  liveClass       LiveClass?       @relation(fields: [liveClassId], references: [id])
+  courseId        String
+  provider        String           @default("BUNNY_STREAM")
+  providerVideoId String           @unique
+  durationSeconds Int?
+  thumbnailUrl    String?
+  status          ProcessingStatus @default(PENDING)
+  createdAt       DateTime         @default(now())
+}
+
+model InstructorSalaryItem {
+  id             String            @id @default(cuid())
+  instructorId    String
+  instructor      InstructorProfile @relation(fields: [instructorId], references: [id])
+  liveClassId     String
+  liveClass       LiveClass         @relation(fields: [liveClassId], references: [id])
+  amountInPaise   Int
+  approvedAt      DateTime?
+  payoutId        String?
+  payout          InstructorSalaryPayout? @relation(fields: [payoutId], references: [id])
+  createdAt       DateTime          @default(now())
+
+  @@unique([instructorId, liveClassId])
+}
+
+model InstructorSalaryPayout {
+  id             String                 @id @default(cuid())
+  instructorId    String
+  instructor      InstructorProfile      @relation(fields: [instructorId], references: [id])
+  amountInPaise   Int
+  paymentReference String
+  paidAt          DateTime
+  items           InstructorSalaryItem[]
+}
+
+model ChatRoom {
+  id        String        @id @default(cuid())
+  courseId  String?
+  course    Course?       @relation(fields: [courseId], references: [id])
+  type      String
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId    String
+  room      ChatRoom @relation(fields: [roomId], references: [id])
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+}
+
+model Certificate {
+  id               String         @id @default(cuid())
+  studentId         String
+  student           StudentProfile @relation(fields: [studentId], references: [id])
+  courseId          String
+  course            Course         @relation(fields: [courseId], references: [id])
+  verificationCode  String         @unique
+  pdfR2Key          String?
+  issuedAt          DateTime       @default(now())
+
+  @@unique([studentId, courseId])
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  invoiceNo String   @unique
+  pdfR2Key  String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation("AuditActor", fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([entity, entityId])
+}
+
