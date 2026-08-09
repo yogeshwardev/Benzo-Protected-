@@ -4,7 +4,9 @@ import { AuthModule } from "./auth/auth.module";
 import { CouponsModule } from "./coupons/coupons.module";
 import { CoursesModule } from "./courses/courses.module";
 import { EnrollmentsModule } from "./enrollments/enrollments.module";
+import { FinancialModule } from "./financial/financial.module";
 import { InstructorsModule } from "./instructors/instructors.module";
+import { InvoicesModule } from "./invoices/invoices.module";
 import { OrdersModule } from "./orders/orders.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { PricingModule } from "./pricing/pricing.module";
@@ -13,6 +15,7 @@ import { ReferralsModule } from "./referrals/referrals.module";
 import { StudentsModule } from "./students/students.module";
 import { UsersModule } from "./users/users.module";
 import { WalletModule } from "./wallet/wallet.module";
+import { WithdrawalsModule } from "./withdrawals/withdrawals.module";
 
 @Module({
   imports: [
@@ -29,7 +32,10 @@ import { WalletModule } from "./wallet/wallet.module";
     PaymentsModule,
     CouponsModule,
     ReferralsModule,
-    WalletModule
+    WalletModule,
+    WithdrawalsModule,
+    InvoicesModule,
+    FinancialModule
   ]
 })
 export class ModulesModule {}

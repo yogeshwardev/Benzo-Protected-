@@ -10,7 +10,7 @@ export default function StudentWalletPage() {
           <WalletCards className="mb-3 text-[var(--brand)]" aria-hidden="true" />
           <h2 className="font-semibold">Ledger balance</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Balance is derived from settled wallet transactions, not an editable number.
+            Balance and availability are derived from wallet transactions, including pending reserves.
           </p>
         </article>
         <article className="rounded-lg border border-[var(--line)] bg-white p-5">
@@ -24,4 +24,3 @@ export default function StudentWalletPage() {
     </main>
   );
 }
-

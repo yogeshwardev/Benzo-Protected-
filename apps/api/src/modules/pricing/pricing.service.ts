@@ -72,7 +72,7 @@ export class PricingService {
       0,
       course.priceInPaise - coupon.discountInPaise - referral.discountInPaise
     );
-    const walletBalanceInPaise = await this.getWalletBalance(student.userId);
+    const walletBalanceInPaise = await this.getAvailableWalletBalance(student.userId);
     const requestedWallet = dto.walletAmountInPaise ?? 0;
 
     if (requestedWallet > walletBalanceInPaise) {
@@ -183,11 +183,11 @@ export class PricingService {
     };
   }
 
-  private async getWalletBalance(userId: string) {
+  private async getAvailableWalletBalance(userId: string) {
     const result = await this.prisma.walletTransaction.aggregate({
       where: {
         userId,
-        status: "SETTLED"
+        OR: [{ status: "SETTLED" }, { status: "PENDING", amountInPaise: { lt: 0 } }]
       },
       _sum: {
         amountInPaise: true
@@ -197,4 +197,3 @@ export class PricingService {
     return result._sum.amountInPaise ?? 0;
   }
 }
-

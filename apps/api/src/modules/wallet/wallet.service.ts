@@ -7,9 +7,16 @@ export class WalletService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getWalletForUser(userId: string) {
-    const [settled, pending, transactions] = await Promise.all([
+    const [settled, available, pending, transactions] = await Promise.all([
       this.prisma.walletTransaction.aggregate({
         where: { userId, status: "SETTLED" },
+        _sum: { amountInPaise: true }
+      }),
+      this.prisma.walletTransaction.aggregate({
+        where: {
+          userId,
+          OR: [{ status: "SETTLED" }, { status: "PENDING", amountInPaise: { lt: 0 } }]
+        },
         _sum: { amountInPaise: true }
       }),
       this.prisma.walletTransaction.aggregate({
@@ -24,12 +31,14 @@ export class WalletService {
     ]);
 
     const balanceInPaise = settled._sum.amountInPaise ?? 0;
+    const availableInPaise = available._sum.amountInPaise ?? 0;
 
     return {
       balanceInPaise,
+      availableInPaise,
       pendingInPaise: pending._sum.amountInPaise ?? 0,
       minimumWithdrawalInPaise: BENZO.minimumWithdrawalInPaise,
-      withdrawalEligible: balanceInPaise >= BENZO.minimumWithdrawalInPaise,
+      withdrawalEligible: availableInPaise >= BENZO.minimumWithdrawalInPaise,
       transactions
     };
   }
@@ -46,4 +55,3 @@ export class WalletService {
     });
   }
 }
-
