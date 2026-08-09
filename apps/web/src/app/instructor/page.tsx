@@ -1,7 +1,14 @@
+import { AuthStatus } from "@/components/auth-status";
+import { RequireSession } from "@/components/require-session";
+
 export default function InstructorDashboardPage() {
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-5 py-8 md:px-8">
-      <h1 className="text-3xl font-semibold">Instructor dashboard</h1>
+      <RequireSession />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <h1 className="text-3xl font-semibold">Instructor dashboard</h1>
+        <AuthStatus />
+      </div>
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         {["Today's class", "Assignment reviews", "Salary status"].map((item) => (
           <article key={item} className="rounded-lg border border-[var(--line)] bg-white p-5">

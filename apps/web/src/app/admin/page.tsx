@@ -1,5 +1,7 @@
 import { BadgeIndianRupee, GraduationCap, ShieldCheck, UserRoundCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { AuthStatus } from "@/components/auth-status";
+import { RequireSession } from "@/components/require-session";
 
 const items: Array<[LucideIcon, string, string]> = [
   [GraduationCap, "Courses", "Create courses, assign instructors, publish pricing."],
@@ -11,7 +13,11 @@ const items: Array<[LucideIcon, string, string]> = [
 export default function AdminDashboardPage() {
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-5 py-8 md:px-8">
-      <h1 className="text-3xl font-semibold">Admin dashboard</h1>
+      <RequireSession />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <h1 className="text-3xl font-semibold">Admin dashboard</h1>
+        <AuthStatus />
+      </div>
       <p className="mt-2 text-sm text-[var(--muted)]">Operational queues come first.</p>
       <section className="mt-8 grid gap-4 md:grid-cols-2">
         {items.map(([Icon, title, body]) => (

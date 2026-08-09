@@ -42,6 +42,12 @@ export default function Home() {
                 Browse courses <ArrowRight size={18} aria-hidden="true" />
               </a>
               <a
+                href="/auth/login"
+                className="inline-flex h-11 items-center rounded-md border border-[var(--brand)] px-5 text-sm font-semibold text-[var(--brand)]"
+              >
+                Login
+              </a>
+              <a
                 href="/auth/register"
                 className="inline-flex h-11 items-center rounded-md border border-[var(--line)] px-5 text-sm font-semibold text-[var(--foreground)]"
               >
@@ -117,4 +123,3 @@ export default function Home() {
     </main>
   );
 }
-
