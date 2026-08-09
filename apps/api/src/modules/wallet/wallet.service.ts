@@ -30,8 +30,8 @@ export class WalletService {
       })
     ]);
 
-    const balanceInPaise = settled._sum.amountInPaise ?? 0;
-    const availableInPaise = available._sum.amountInPaise ?? 0;
+    const balanceInPaise = Math.max(0, settled._sum.amountInPaise ?? 0);
+    const availableInPaise = Math.max(0, available._sum.amountInPaise ?? 0);
 
     return {
       balanceInPaise,

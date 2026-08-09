@@ -1,44 +1,17 @@
-import { Award, BadgeCheck, QrCode } from "lucide-react";
+"use client";
 
-const checks = [
-  ["Attendance", "Minimum 80 percent across completed live classes."],
-  ["Assignments", "Required submissions must be approved."],
-  ["Quizzes", "Required quizzes must meet the configured passing score."],
-  ["Completion", "Course lessons must be completed."]
-];
+import { Award, ExternalLink } from "lucide-react";
+import { EmptyState, ErrorState, LoadingState, PageHeading, StatusBadge } from "@/components/student-ui";
+import { formatDate } from "@/lib/api";
+import { useApi } from "@/lib/use-api";
+
+type Certificate = { id: string; verificationCode: string; status: string; issuedAt: string; course: { title: string; slug: string } };
 
 export default function StudentCertificatesPage() {
-  return (
-    <main className="mx-auto min-h-screen max-w-7xl px-5 py-8 md:px-8">
-      <h1 className="text-3xl font-semibold">Certificates</h1>
-      <p className="mt-2 text-sm text-[var(--muted)]">
-        Eligibility is calculated from course progress, attendance, assignments, and quizzes.
-      </p>
-      <section className="mt-8 grid gap-4 md:grid-cols-4">
-        {checks.map(([title, body]) => (
-          <article key={title} className="rounded-lg border border-[var(--line)] bg-white p-5">
-            <BadgeCheck className="mb-3 text-[var(--brand)]" aria-hidden="true" />
-            <h2 className="font-semibold">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{body}</p>
-          </article>
-        ))}
-      </section>
-      <section className="mt-4 grid gap-4 md:grid-cols-2">
-        <article className="rounded-lg border border-[var(--line)] bg-white p-5">
-          <Award className="mb-3 text-[var(--brand)]" aria-hidden="true" />
-          <h2 className="font-semibold">Issued certificates</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Issued records include a unique certificate ID and verification URL.
-          </p>
-        </article>
-        <article className="rounded-lg border border-[var(--line)] bg-white p-5">
-          <QrCode className="mb-3 text-[var(--brand)]" aria-hidden="true" />
-          <h2 className="font-semibold">QR verification</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Public verification checks the certificate status before showing it as valid.
-          </p>
-        </article>
-      </section>
-    </main>
-  );
+  const { data, error, loading, reload } = useApi<Certificate[]>("/certificates/me");
+  if (loading) return <LoadingState label="Loading certificates" />;
+  if (error) return <ErrorState message={error} onRetry={() => void reload()} />;
+  return <><PageHeading eyebrow="Achievements" title="Certificates" description="Certificates are issued after course completion, required assignments and quizzes, and at least 80 percent attendance." />
+    {!data?.length ? <EmptyState title="No certificates issued" body="Open an enrolled course to complete lessons and check your eligibility." /> : <section className="grid gap-5 md:grid-cols-2">{data.map((item) => <article key={item.id} className="border border-[var(--line)] bg-white p-5"><div className="flex items-start justify-between"><Award className="text-[var(--brand)]" size={28}/><StatusBadge value={item.status}/></div><h2 className="mt-6 text-xl font-black text-[var(--ink)]">{item.course.title}</h2><p className="mt-2 font-mono text-xs text-[var(--muted)]">{item.verificationCode}</p><p className="mt-4 text-sm text-[var(--muted)]">Issued {formatDate(item.issuedAt)}</p><a className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[var(--brand)]" href={`/verify/${item.verificationCode}`}>Verify certificate <ExternalLink size={15}/></a></article>)}</section>}
+  </>;
 }

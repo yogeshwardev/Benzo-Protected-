@@ -1,26 +1,18 @@
-import { FileText, ShieldCheck } from "lucide-react";
+"use client";
+
+import { FileText } from "lucide-react";
+import { EmptyState, ErrorState, LoadingState, PageHeading } from "@/components/student-ui";
+import { formatDate, formatMoney } from "@/lib/api";
+import { useApi } from "@/lib/use-api";
+
+type Order = { id: string; status: string; finalAmountInPaise: number; createdAt: string; course: { title: string }; invoice?: { invoiceNo: string; createdAt?: string } | null };
 
 export default function StudentInvoicesPage() {
-  return (
-    <main className="mx-auto min-h-screen max-w-7xl px-5 py-8 md:px-8">
-      <h1 className="text-3xl font-semibold">Invoices</h1>
-      <section className="mt-8 grid gap-4 md:grid-cols-2">
-        <article className="rounded-lg border border-[var(--line)] bg-white p-5">
-          <FileText className="mb-3 text-[var(--brand)]" aria-hidden="true" />
-          <h2 className="font-semibold">Paid order invoices</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Invoice records are created once during paid order settlement.
-          </p>
-        </article>
-        <article className="rounded-lg border border-[var(--line)] bg-white p-5">
-          <ShieldCheck className="mb-3 text-[var(--brand)]" aria-hidden="true" />
-          <h2 className="font-semibold">Private access</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Students can access only their own invoice metadata.
-          </p>
-        </article>
-      </section>
-    </main>
-  );
+  const { data, error, loading, reload } = useApi<Order[]>("/orders/me");
+  if (loading) return <LoadingState label="Loading invoices" />;
+  if (error) return <ErrorState message={error} onRetry={() => void reload()} />;
+  const invoices = data?.filter((order) => order.invoice) ?? [];
+  return <><PageHeading eyebrow="Billing" title="Invoices" description="An invoice record is created exactly once after a successful payment settles." />
+    {!invoices.length ? <EmptyState title="No invoices yet" body="Paid course orders will generate an invoice here." /> : <section className="grid gap-4 md:grid-cols-2">{invoices.map((order) => <article key={order.id} className="border border-[var(--line)] bg-white p-5"><div className="flex items-start justify-between gap-4"><FileText className="text-[var(--brand)]" size={23}/><span className="font-mono text-xs font-bold text-[var(--muted)]">{order.invoice?.invoiceNo}</span></div><h2 className="mt-5 font-black text-[var(--ink)]">{order.course.title}</h2><div className="mt-3 flex items-center justify-between text-sm"><span className="text-[var(--muted)]">{formatDate(order.createdAt)}</span><strong>{formatMoney(order.finalAmountInPaise)}</strong></div></article>)}</section>}
+  </>;
 }
-

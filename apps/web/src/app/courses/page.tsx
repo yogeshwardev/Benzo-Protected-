@@ -8,10 +8,10 @@ const referralValueInInr = BENZO.referralDiscountInPaise / 100;
 
 export default function CoursesPage() {
   return (
-    <main className="min-h-screen bg-[var(--background)]">
-      <header className="border-b border-[var(--line)] bg-white">
+    <main className="page-grain min-h-screen">
+      <header className="border-b border-black/10 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
-          <a className="text-xl font-black text-[var(--brand)]" href="/">
+          <a className="brand-wordmark text-xl font-black text-[var(--ink)]" href="/">
             BENZO
           </a>
           <div className="flex items-center gap-3">
@@ -20,7 +20,7 @@ export default function CoursesPage() {
             </a>
             <a
               href="/auth/register"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--brand)] px-4 text-sm font-black text-white"
+              className="brand-button inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-black"
             >
               Register <ArrowRight size={16} aria-hidden="true" />
             </a>
@@ -28,30 +28,29 @@ export default function CoursesPage() {
         </div>
       </header>
 
-      <section className="border-b border-[var(--line)] bg-white">
+      <section className="border-b border-black/10 bg-white/70">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 md:grid-cols-[1fr_340px] md:px-8">
           <div>
-            <a className="text-sm font-black text-[var(--brand)]" href="/">
+            <a className="underlined-link text-sm font-black text-[var(--brand)]" href="/">
               Back to home
             </a>
-            <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight text-slate-950 md:text-5xl">
-              Choose a live tech course and start from the right foundation.
+            <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight text-[var(--ink)] md:text-5xl">
+              Choose the course that matches your next real step.
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-[var(--muted)]">
-              Search BENZO's initial catalog. Each course is designed around live attendance,
-              recordings, materials, assignments, quizzes, chat, payments, invoices, referrals,
-              and certificate eligibility.
+              Search BENZO's catalog by language, track, or outcome. Every course is wired for live
+              attendance, recordings, materials, assignments, quizzes, chat, checkout, invoices, and certificates.
             </p>
           </div>
 
-          <aside className="rounded-lg border border-[var(--line)] bg-slate-50 p-5">
+          <aside className="rounded-xl border border-[var(--line)] bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-md bg-teal-100 text-[var(--brand)]">
+              <span className="flex size-11 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
                 <ShieldCheck size={22} aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-black text-slate-950">Catalog facts</p>
-                <p className="text-xs font-semibold text-[var(--muted)]">Server-owned business rules</p>
+                <p className="text-sm font-black text-[var(--ink)]">Catalog facts</p>
+                <p className="text-xs font-semibold text-[var(--muted)]">Rules enforced in the backend</p>
               </div>
             </div>
             <dl className="mt-5 grid gap-3 text-sm">
@@ -78,7 +77,7 @@ export default function CoursesPage() {
               </div>
             </dl>
             <p className="mt-4 text-xs leading-5 text-[var(--muted)]">
-              Eligible referral codes can discount a student by INR {referralValueInInr}; wallet credits are handled after enrollment rules pass.
+              Eligible referral codes can discount a student by INR {referralValueInInr}; wallet credit is issued only after enrollment rules pass.
             </p>
           </aside>
         </div>

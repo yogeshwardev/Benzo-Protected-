@@ -29,5 +29,9 @@ export class CreateInstructorDto {
   @IsOptional()
   @IsString()
   bankMasked?: string;
-}
 
+  @IsOptional()
+  @IsString()
+  @Length(8, 80)
+  temporaryPassword?: string;
+}

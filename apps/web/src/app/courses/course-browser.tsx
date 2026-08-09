@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, CalendarClock, CheckCircle2, IndianRupee, Search, UsersRound } from "lucide-react";
+import { ArrowRight, CalendarClock, CheckCircle2, IndianRupee, Search, SlidersHorizontal, UsersRound } from "lucide-react";
 import { courseCatalog, courseCategories } from "@/lib/course-catalog";
 
 const coursePriceInInr = 699;
@@ -26,20 +26,24 @@ export function CourseBrowser() {
 
   return (
     <section className="space-y-7">
-      <div className="rounded-lg border border-[var(--line)] bg-white p-4 shadow-sm">
-        <label className="flex h-14 items-center gap-3 rounded-md border border-[var(--line)] bg-slate-50 px-4">
+      <div className="rounded-lg border border-black/10 bg-white p-4 shadow-sm">
+        <label className="field flex h-14 items-center gap-3 rounded-md px-4 transition">
           <Search className="shrink-0 text-[var(--brand)]" size={21} aria-hidden="true" />
           <span className="sr-only">Search courses</span>
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search Python, DevOps, Java, AI..."
+            placeholder="Search Python, DevOps, Java..."
             className="h-full min-w-0 flex-1 bg-transparent text-base font-semibold outline-none placeholder:text-slate-400"
           />
         </label>
 
-        <div className="mt-4 flex flex-wrap gap-2" aria-label="Course categories">
+        <div className="mt-4 flex flex-wrap items-center gap-2" aria-label="Course categories">
+          <span className="flex h-10 items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-black uppercase text-slate-700">
+            <SlidersHorizontal size={15} aria-hidden="true" />
+            Filter
+          </span>
           {courseCategories.map((item) => {
             const selected = category === item;
 
@@ -50,8 +54,8 @@ export function CourseBrowser() {
                 onClick={() => setCategory(item)}
                 className={`h-10 rounded-md border px-4 text-sm font-bold transition ${
                   selected
-                    ? "border-[var(--brand)] bg-teal-50 text-[var(--brand)]"
-                    : "border-[var(--line)] bg-white text-slate-700 hover:border-teal-300"
+                    ? "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--brand)]"
+                    : "border-black/10 bg-white text-slate-700 hover:border-[var(--brand)]"
                 }`}
                 aria-pressed={selected}
               >
@@ -67,18 +71,18 @@ export function CourseBrowser() {
           const Icon = course.Icon;
 
           return (
-            <article key={course.slug} className="overflow-hidden rounded-lg border border-[var(--line)] bg-white shadow-sm">
-              <div className={`h-2 bg-gradient-to-r ${course.accent}`} />
+            <article key={course.slug} className="soft-ring overflow-hidden rounded-lg border border-black/10 bg-white">
+              <div className={`h-1.5 bg-gradient-to-r ${course.accent}`} />
               <div className="p-5">
                 <div className="mb-5 flex items-start justify-between gap-4">
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white">
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-[var(--ink)] text-white">
                     <Icon size={23} aria-hidden="true" />
                   </span>
-                  <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
                     {course.category}
                   </span>
                 </div>
-                <h2 className="text-xl font-black text-slate-950">{course.title}</h2>
+                <h2 className="text-xl font-black text-[var(--ink)]">{course.title}</h2>
                 <p className="mt-3 min-h-20 text-sm leading-6 text-[var(--muted)]">{course.summary}</p>
 
                 <div className="mt-5 grid gap-2 text-sm">
@@ -107,7 +111,7 @@ export function CourseBrowser() {
 
                 <a
                   href={`/courses/${course.slug}`}
-                  className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-black text-white"
+                  className="ink-button mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md px-4 text-sm font-black"
                 >
                   View course <ArrowRight size={17} aria-hidden="true" />
                 </a>
@@ -118,8 +122,8 @@ export function CourseBrowser() {
       </div>
 
       {visibleCourses.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-[var(--line)] bg-white p-8 text-center">
-          <h2 className="text-xl font-black text-slate-950">No courses found</h2>
+        <div className="rounded-lg border border-dashed border-black/20 bg-white p-8 text-center">
+          <h2 className="text-xl font-black text-[var(--ink)]">No courses found</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">Try another search term or choose a different category.</p>
         </div>
       ) : null}

@@ -1,24 +1,18 @@
 import { Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { createHmac } from "crypto";
+import { AccessToken, TrackSource, type VideoGrant } from "livekit-server-sdk";
 
-interface LiveKitGrant {
-  room: string;
-  roomJoin: boolean;
-  canPublish: boolean;
-  canSubscribe: boolean;
-  canPublishData: boolean;
-}
+export type LiveKitParticipantRole = "INSTRUCTOR" | "STUDENT";
 
 @Injectable()
 export class LiveKitTokenService {
   constructor(private readonly config: ConfigService) {}
 
-  createRoomToken(input: {
+  async createRoomToken(input: {
     identity: string;
     name: string;
     room: string;
-    grants: LiveKitGrant;
+    role: LiveKitParticipantRole;
     metadata: Record<string, string>;
   }) {
     const apiKey = this.config.get<string>("LIVEKIT_API_KEY");
@@ -36,37 +30,48 @@ export class LiveKitTokenService {
       };
     }
 
-    const now = Math.floor(Date.now() / 1000);
-    const payload = {
-      iss: apiKey,
-      sub: input.identity,
+    const token = new AccessToken(apiKey, apiSecret, {
+      identity: input.identity,
       name: input.name,
       metadata: JSON.stringify(input.metadata),
-      nbf: now - 10,
-      exp: now + 60 * 60 * 2,
-      video: input.grants
-    };
+      ttl: this.config.get<string>("LIVEKIT_TOKEN_TTL", "2h")
+    });
+
+    token.addGrant(this.createGrant(input.room, input.role));
 
     return {
-      token: this.signJwt(payload, apiSecret),
+      token: await token.toJwt(),
       url: this.config.get<string>("LIVEKIT_URL"),
       room: input.room
     };
   }
 
-  private signJwt(payload: Record<string, unknown>, secret: string) {
-    const header = { alg: "HS256", typ: "JWT" };
-    const encodedHeader = this.base64Url(JSON.stringify(header));
-    const encodedPayload = this.base64Url(JSON.stringify(payload));
-    const signature = createHmac("sha256", secret)
-      .update(`${encodedHeader}.${encodedPayload}`)
-      .digest("base64url");
+  private createGrant(room: string, role: LiveKitParticipantRole): VideoGrant {
+    const baseGrant: VideoGrant = {
+      room,
+      roomJoin: true,
+      canSubscribe: true,
+      canPublishData: true
+    };
 
-    return `${encodedHeader}.${encodedPayload}.${signature}`;
-  }
+    if (role === "INSTRUCTOR") {
+      return {
+        ...baseGrant,
+        roomAdmin: true,
+        canPublish: true,
+        canPublishSources: [
+          TrackSource.MICROPHONE,
+          TrackSource.CAMERA,
+          TrackSource.SCREEN_SHARE,
+          TrackSource.SCREEN_SHARE_AUDIO
+        ]
+      };
+    }
 
-  private base64Url(value: string) {
-    return Buffer.from(value).toString("base64url");
+    return {
+      ...baseGrant,
+      canPublish: true,
+      canPublishSources: [TrackSource.MICROPHONE, TrackSource.CAMERA]
+    };
   }
 }
-

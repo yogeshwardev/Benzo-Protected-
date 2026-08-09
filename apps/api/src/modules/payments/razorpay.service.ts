@@ -1,10 +1,17 @@
-import { BadGatewayException, Injectable, ServiceUnavailableException } from "@nestjs/common";
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+  ServiceUnavailableException,
+  UnauthorizedException
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createHmac, timingSafeEqual } from "crypto";
+import Razorpay = require("razorpay");
 
 interface RazorpayOrderResponse {
   id: string;
-  amount: number;
+  amount: number | string;
   currency: string;
   receipt: string;
   status: string;
@@ -12,11 +19,17 @@ interface RazorpayOrderResponse {
 
 @Injectable()
 export class RazorpayService {
+  private static readonly minimumAmountInPaise = 100;
+
   constructor(private readonly config: ConfigService) {}
 
   async createOrder(input: { amountInPaise: number; receipt: string; notes?: Record<string, string> }) {
     const keyId = this.config.get<string>("RAZORPAY_KEY_ID");
     const keySecret = this.config.get<string>("RAZORPAY_KEY_SECRET");
+
+    if (!Number.isInteger(input.amountInPaise) || input.amountInPaise < RazorpayService.minimumAmountInPaise) {
+      throw new BadRequestException("Razorpay amount must be at least 100 paise.");
+    }
 
     if (!keyId || !keySecret) {
       if (this.isProduction()) {
@@ -32,25 +45,29 @@ export class RazorpayService {
       };
     }
 
-    const response = await fetch("https://api.razorpay.com/v1/orders", {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${keyId}:${keySecret}`).toString("base64")}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+    try {
+      const razorpay = new Razorpay({
+        key_id: keyId,
+        key_secret: keySecret
+      });
+      const order = (await razorpay.orders.create({
         amount: input.amountInPaise,
         currency: "INR",
         receipt: input.receipt,
         notes: input.notes
-      })
-    });
+      })) as RazorpayOrderResponse;
 
-    if (!response.ok) {
+      return {
+        ...order,
+        amount: Number(order.amount)
+      };
+    } catch (error) {
+      if (this.isAuthFailure(error)) {
+        throw new UnauthorizedException("Razorpay authentication failed.");
+      }
+
       throw new BadGatewayException("Razorpay order creation failed.");
     }
-
-    return (await response.json()) as RazorpayOrderResponse;
   }
 
   verifyPaymentSignature(input: {
@@ -108,5 +125,13 @@ export class RazorpayService {
   private isProduction() {
     return this.config.get<string>("NODE_ENV", "development") === "production";
   }
-}
 
+  private isAuthFailure(error: unknown) {
+    if (!error || typeof error !== "object") {
+      return false;
+    }
+
+    const candidate = error as { statusCode?: unknown; status?: unknown; response?: { status?: unknown } };
+    return candidate.statusCode === 401 || candidate.status === 401 || candidate.response?.status === 401;
+  }
+}

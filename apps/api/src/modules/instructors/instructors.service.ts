@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { AccountStatus } from "@prisma/client";
+import * as argon2 from "argon2";
 import { customAlphabet } from "nanoid";
 import { AuthService } from "../auth/auth.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -26,6 +27,32 @@ export class InstructorsService {
         }
       }
     });
+  }
+
+  async getMyProfile(userId: string) {
+    const instructor = await this.prisma.instructorProfile.findUnique({
+      where: { userId },
+      include: {
+        user: { select: { id: true, name: true, email: true, mobile: true, status: true } },
+        assignments: {
+          where: { active: true },
+          include: {
+            course: {
+              include: {
+                schedules: { where: { active: true } },
+                _count: { select: { enrollments: true, lessons: true, materials: true, quizzes: true } }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!instructor) {
+      throw new NotFoundException("Instructor profile not found.");
+    }
+
+    return instructor;
   }
 
   async createInstructor(dto: CreateInstructorDto) {
@@ -61,7 +88,8 @@ export class InstructorsService {
           mobile: dto.mobile,
           name: dto.name,
           role: "INSTRUCTOR",
-          status: AccountStatus.PENDING_ACTIVATION,
+          status: dto.temporaryPassword ? AccountStatus.ACTIVE : AccountStatus.PENDING_ACTIVATION,
+          passwordHash: dto.temporaryPassword ? await argon2.hash(dto.temporaryPassword) : undefined,
           instructorProfile: {
             create: {
               instructorCode: `BZ-INS-${codeAlphabet()}`,
@@ -93,7 +121,7 @@ export class InstructorsService {
 
     return {
       user,
-      activation: await this.authService.createPasswordSetupToken(user.id)
+      activation: dto.temporaryPassword ? undefined : await this.authService.createPasswordSetupToken(user.id)
     };
   }
 }

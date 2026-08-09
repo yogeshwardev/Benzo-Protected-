@@ -11,6 +11,12 @@ import { AttendanceService } from "./attendance.service";
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
+  @Get("me")
+  @Roles("INSTRUCTOR", "STUDENT")
+  listMine(@CurrentUserDecorator() user: CurrentUser) {
+    return this.attendanceService.listMyAttendance(user);
+  }
+
   @Post("live-classes/:liveClassId/join")
   @Roles("INSTRUCTOR", "STUDENT")
   join(@CurrentUserDecorator() user: CurrentUser, @Param("liveClassId") liveClassId: string) {
@@ -35,4 +41,3 @@ export class AttendanceController {
     return this.attendanceService.listClassAttendance(user, liveClassId);
   }
 }
-

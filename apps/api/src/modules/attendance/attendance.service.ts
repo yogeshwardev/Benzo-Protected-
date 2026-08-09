@@ -11,6 +11,21 @@ export class AttendanceService {
     private readonly access: CourseAccessService
   ) {}
 
+  listMyAttendance(user: CurrentUser) {
+    return this.prisma.attendanceSummary.findMany({
+      where: { userId: user.id },
+      orderBy: { calculatedAt: "desc" },
+      take: 100,
+      include: {
+        liveClass: {
+          include: {
+            course: { select: { id: true, title: true, slug: true } }
+          }
+        }
+      }
+    });
+  }
+
   async recordJoin(user: CurrentUser, liveClassId: string) {
     const liveClass = await this.getLiveClass(liveClassId);
     await this.assertCanAttend(user, liveClass.courseId);
@@ -19,6 +34,32 @@ export class AttendanceService {
       data: {
         liveClassId,
         userId: user.id,
+        joinedAt: new Date(),
+        source: "LIVEKIT"
+      }
+    });
+  }
+
+  async recordLiveKitJoin(input: { liveClassId: string; userId: string }) {
+    await this.getLiveClass(input.liveClassId);
+    const openSession = await this.prisma.attendanceSession.findFirst({
+      where: {
+        liveClassId: input.liveClassId,
+        userId: input.userId,
+        leftAt: null,
+        source: "LIVEKIT"
+      },
+      orderBy: { joinedAt: "desc" }
+    });
+
+    if (openSession) {
+      return openSession;
+    }
+
+    return this.prisma.attendanceSession.create({
+      data: {
+        liveClassId: input.liveClassId,
+        userId: input.userId,
         joinedAt: new Date(),
         source: "LIVEKIT"
       }
@@ -46,9 +87,63 @@ export class AttendanceService {
     });
   }
 
+  async recordLiveKitLeave(input: { liveClassId: string; userId: string }) {
+    await this.getLiveClass(input.liveClassId);
+    const openSession = await this.prisma.attendanceSession.findFirst({
+      where: {
+        liveClassId: input.liveClassId,
+        userId: input.userId,
+        leftAt: null,
+        source: "LIVEKIT"
+      },
+      orderBy: { joinedAt: "desc" }
+    });
+
+    if (!openSession) {
+      return null;
+    }
+
+    return this.prisma.attendanceSession.update({
+      where: { id: openSession.id },
+      data: { leftAt: new Date() }
+    });
+  }
+
   async summarizeLiveClass(user: CurrentUser, liveClassId: string) {
     const liveClass = await this.getLiveClass(liveClassId);
     await this.access.assertCanManageCourse(user, liveClass.courseId);
+    return this.summarizeLiveClassById(liveClassId);
+  }
+
+  async summarizeLiveClassFromWebhook(liveClassId: string) {
+    await this.getLiveClass(liveClassId);
+    return this.summarizeLiveClassById(liveClassId);
+  }
+
+  private async summarizeLiveClassById(liveClassId: string) {
+    const liveClass = await this.prisma.liveClass.findUniqueOrThrow({
+      where: { id: liveClassId },
+      include: {
+        course: {
+          include: {
+            enrollments: {
+              where: {
+                active: true,
+                student: { user: { status: "ACTIVE" } }
+              },
+              include: { student: { include: { user: true } } }
+            },
+            assignments: {
+              where: {
+                active: true,
+                instructor: { user: { status: "ACTIVE" } }
+              },
+              include: { instructor: { include: { user: true } } }
+            }
+          }
+        }
+      }
+    });
     const sessions = await this.prisma.attendanceSession.findMany({
       where: { liveClassId },
       orderBy: { joinedAt: "asc" }
@@ -65,7 +160,14 @@ export class AttendanceService {
     );
     const summaries = [];
 
-    for (const [userId, userSessions] of byUser.entries()) {
+    const expectedUserIds = new Set([
+      ...liveClass.course.enrollments.map((enrollment) => enrollment.student.userId),
+      ...liveClass.course.assignments.map((assignment) => assignment.instructor.userId),
+      ...byUser.keys()
+    ]);
+
+    for (const userId of expectedUserIds) {
+      const userSessions = byUser.get(userId) ?? [];
       const attendedSeconds = this.calculateOfficialPresenceSeconds(
         userSessions,
         liveClass.startsAt,
@@ -180,4 +282,3 @@ export class AttendanceService {
     return Math.floor(totalMs / 1000);
   }
 }
-

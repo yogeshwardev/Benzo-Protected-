@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { AccountStatus } from "@prisma/client";
+import { AccountStatus, Prisma } from "@prisma/client";
 import * as argon2 from "argon2";
 import { createHash } from "crypto";
 import { customAlphabet } from "nanoid";
@@ -26,7 +26,7 @@ export class AuthService {
   ) {}
 
   async registerStudent(dto: RegisterStudentDto) {
-    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email.toLowerCase() } });
 
     if (existingUser) {
       throw new ConflictException("An account already exists for this email.");
@@ -42,51 +42,7 @@ export class AuthService {
       throw new BadRequestException("Referral code is not valid.");
     }
 
-    const user = await this.prisma.$transaction(async (tx) => {
-      const createdUser = await tx.user.create({
-        data: {
-          email: dto.email.toLowerCase(),
-          mobile: dto.mobile,
-          name: dto.name,
-          passwordHash: await argon2.hash(dto.password),
-          role: "STUDENT",
-          status: AccountStatus.PENDING_ACTIVATION,
-          studentProfile: {
-            create: {
-              studentCode: `BZ-STU-${codeAlphabet()}`,
-              referralCode: `BENZO-${codeAlphabet()}`,
-              referredById: referrer?.id
-            }
-          }
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          status: true,
-          studentProfile: {
-            select: {
-              id: true,
-              studentCode: true,
-              referralCode: true
-            }
-          }
-        }
-      });
-
-      if (referrer) {
-        await tx.referral.create({
-          data: {
-            referrerId: referrer.id,
-            referredId: createdUser.studentProfile!.id
-          }
-        });
-      }
-
-      return createdUser;
-    });
-
+    const user = await this.createStudentUser(dto, referrer?.id);
     const verification = await this.createEmailVerificationToken(user.id);
 
     return { user, verification };
@@ -280,6 +236,65 @@ export class AuthService {
     };
   }
 
+  private async createStudentUser(dto: RegisterStudentDto, referrerId: string | undefined) {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+          data: {
+            email: dto.email.toLowerCase(),
+            mobile: dto.mobile,
+            name: dto.name,
+            passwordHash: await argon2.hash(dto.password),
+            role: "STUDENT",
+            status: AccountStatus.PENDING_ACTIVATION,
+            studentProfile: {
+              create: {
+                studentCode: `BZ-STU-${codeAlphabet()}`,
+                referralCode: `BENZO-${codeAlphabet()}`,
+                referredById: referrerId
+              }
+            }
+          },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            status: true,
+            studentProfile: {
+              select: {
+                id: true,
+                studentCode: true,
+                referralCode: true
+              }
+            }
+          }
+        });
+
+        if (referrerId) {
+          await tx.referral.create({
+            data: {
+              referrerId,
+              referredId: createdUser.studentProfile!.id
+            }
+          });
+        }
+
+        return createdUser;
+      });
+    } catch (error) {
+      if (this.isUniqueConstraintError(error, "mobile")) {
+        throw new ConflictException("An account already exists for this mobile number.");
+      }
+
+      if (this.isUniqueConstraintError(error, "email")) {
+        throw new ConflictException("An account already exists for this email.");
+      }
+
+      throw error;
+    }
+  }
+
   private async createEmailVerificationToken(userId: string) {
     const token = tokenAlphabet();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -336,5 +351,14 @@ export class AuthService {
 
   private isDevelopment() {
     return this.config.get<string>("NODE_ENV", "development") !== "production";
+  }
+
+  private isUniqueConstraintError(error: unknown, field: string) {
+    return (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002" &&
+      Array.isArray(error.meta?.target) &&
+      error.meta.target.includes(field)
+    );
   }
 }

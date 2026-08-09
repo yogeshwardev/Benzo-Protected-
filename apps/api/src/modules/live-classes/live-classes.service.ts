@@ -35,7 +35,7 @@ export class LiveClassesService {
     if (user.role === "STUDENT") {
       return this.prisma.liveClass.findMany({
         where: {
-          startsAt: { gte: now },
+          endsAt: { gte: now },
           status: { in: ["SCHEDULED", "LIVE"] },
           course: {
             enrollments: {
@@ -54,7 +54,7 @@ export class LiveClassesService {
 
     return this.prisma.liveClass.findMany({
       where: {
-        startsAt: { gte: now },
+        endsAt: { gte: now },
         status: { in: ["SCHEDULED", "LIVE"] },
         course: {
           assignments: {
@@ -87,8 +87,7 @@ export class LiveClassesService {
         scheduleId: dto.scheduleId,
         title: dto.title,
         startsAt,
-        endsAt,
-        livekitRoom: `benzo-${dto.courseId}-${startsAt.getTime()}`
+        endsAt
       }
     });
   }
@@ -118,7 +117,7 @@ export class LiveClassesService {
       this.assertStudentJoinWindow(liveClass.startsAt, liveClass.endsAt);
     }
 
-    const room = liveClass.livekitRoom ?? `benzo-${liveClass.id}`;
+    const room = liveClass.livekitRoom ?? this.createRoomName(liveClass.courseId, liveClass.id, liveClass.startsAt);
 
     if (!liveClass.livekitRoom) {
       await this.prisma.liveClass.update({
@@ -127,19 +126,15 @@ export class LiveClassesService {
       });
     }
 
+    const participantRole = user.role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT";
+
     return this.livekit.createRoomToken({
       identity: user.id,
       name: user.email,
       room,
-      grants: {
-        room,
-        roomJoin: true,
-        canPublish: user.role === "INSTRUCTOR",
-        canSubscribe: true,
-        canPublishData: true
-      },
+      role: participantRole,
       metadata: {
-        role: user.role,
+        role: participantRole,
         liveClassId: liveClass.id,
         courseId: liveClass.courseId
       }
@@ -194,5 +189,8 @@ export class LiveClassesService {
       throw new ForbiddenException("Student can join only during the allowed class window.");
     }
   }
-}
 
+  private createRoomName(courseId: string, liveClassId: string, startsAt: Date) {
+    return `course-${courseId}-class-${liveClassId}-${startsAt.getTime()}`;
+  }
+}

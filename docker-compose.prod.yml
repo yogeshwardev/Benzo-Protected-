@@ -30,6 +30,44 @@ services:
       timeout: 5s
       retries: 5
 
+  livekit:
+    image: livekit/livekit-server:latest
+    restart: unless-stopped
+    environment:
+      LIVEKIT_CONFIG: |
+        port: 7880
+        log_level: ${LIVEKIT_LOG_LEVEL:-info}
+        rtc:
+          tcp_port: 7881
+          port_range_start: ${LIVEKIT_RTC_PORT_START:-50000}
+          port_range_end: ${LIVEKIT_RTC_PORT_END:-50100}
+          use_external_ip: true
+        redis:
+          address: redis:6379
+        keys:
+          ${LIVEKIT_API_KEY:?LIVEKIT_API_KEY is required}: ${LIVEKIT_API_SECRET:?LIVEKIT_API_SECRET is required}
+        webhook:
+          urls:
+            - ${LIVEKIT_WEBHOOK_URL:-https://benzo.co.in/api/v1/livekit/webhook}
+          api_key: ${LIVEKIT_API_KEY:?LIVEKIT_API_KEY is required}
+        turn:
+          enabled: false
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - benzo_internal
+    expose:
+      - "7880"
+    ports:
+      - "7881:7881/tcp"
+      - "${LIVEKIT_RTC_PORT_START:-50000}-${LIVEKIT_RTC_PORT_END:-50100}:${LIVEKIT_RTC_PORT_START:-50000}-${LIVEKIT_RTC_PORT_END:-50100}/udp"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:7880 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: .
@@ -41,6 +79,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      livekit:
         condition: service_healthy
     networks:
       - benzo_internal
@@ -69,6 +109,8 @@ services:
       web:
         condition: service_healthy
       api:
+        condition: service_healthy
+      livekit:
         condition: service_healthy
     ports:
       - "80:80"

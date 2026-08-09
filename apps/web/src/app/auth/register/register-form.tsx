@@ -59,10 +59,10 @@ export function RegisterForm() {
 
   return (
     <form className="mt-6 grid gap-4" onSubmit={(event) => void submit(event)}>
-      <label className="grid gap-2 text-sm font-medium">
+      <label className="grid gap-2 text-sm font-bold text-slate-800">
         Name
         <input
-          className="h-11 rounded-md border border-[var(--line)] px-3"
+          className="field h-11 rounded-md px-3 outline-none transition"
           autoComplete="name"
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -70,10 +70,10 @@ export function RegisterForm() {
           minLength={2}
         />
       </label>
-      <label className="grid gap-2 text-sm font-medium">
+      <label className="grid gap-2 text-sm font-bold text-slate-800">
         Email
         <input
-          className="h-11 rounded-md border border-[var(--line)] px-3"
+          className="field h-11 rounded-md px-3 outline-none transition"
           type="email"
           autoComplete="email"
           value={email}
@@ -81,10 +81,10 @@ export function RegisterForm() {
           required
         />
       </label>
-      <label className="grid gap-2 text-sm font-medium">
+      <label className="grid gap-2 text-sm font-bold text-slate-800">
         Mobile
         <input
-          className="h-11 rounded-md border border-[var(--line)] px-3"
+          className="field h-11 rounded-md px-3 outline-none transition"
           type="tel"
           autoComplete="tel"
           value={mobile}
@@ -93,10 +93,10 @@ export function RegisterForm() {
           maxLength={20}
         />
       </label>
-      <label className="grid gap-2 text-sm font-medium">
+      <label className="grid gap-2 text-sm font-bold text-slate-800">
         Password
         <input
-          className="h-11 rounded-md border border-[var(--line)] px-3"
+          className="field h-11 rounded-md px-3 outline-none transition"
           type="password"
           autoComplete="new-password"
           value={password}
@@ -105,10 +105,10 @@ export function RegisterForm() {
           minLength={8}
         />
       </label>
-      <label className="grid gap-2 text-sm font-medium">
+      <label className="grid gap-2 text-sm font-bold text-slate-800">
         Referral code
         <input
-          className="h-11 rounded-md border border-[var(--line)] px-3"
+          className="field h-11 rounded-md px-3 outline-none transition"
           value={referralCode}
           onChange={(event) => setReferralCode(event.target.value)}
         />
@@ -119,7 +119,7 @@ export function RegisterForm() {
         </p>
       ) : null}
       <button
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[var(--brand)] px-5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+        className="brand-button inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 font-bold disabled:cursor-not-allowed disabled:opacity-70"
         type="submit"
         disabled={loading}
       >

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { CurrentUserDecorator } from "../../common/rbac/current-user.decorator";
 import type { CurrentUser } from "../../common/rbac/current-user";
 import { JwtAuthGuard } from "../../common/rbac/jwt-auth.guard";
@@ -18,6 +18,12 @@ export class OrdersController {
     return this.ordersService.createCourseOrder(user.id, dto);
   }
 
+  @Post(":id/cancel")
+  @Roles("STUDENT")
+  cancelOrder(@CurrentUserDecorator() user: CurrentUser, @Param("id") id: string) {
+    return this.ordersService.cancelCourseOrder(user.id, id);
+  }
+
   @Get("me")
   @Roles("STUDENT")
   listMyOrders(@CurrentUserDecorator() user: CurrentUser) {
@@ -30,4 +36,3 @@ export class OrdersController {
     return this.ordersService.listOrdersForAdmin();
   }
 }
-

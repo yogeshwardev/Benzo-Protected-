@@ -1,5 +1,6 @@
 import {
   Body,
+  BadRequestException,
   Controller,
   Headers,
   Post,
@@ -43,7 +44,7 @@ export class PaymentsController {
     });
 
     if (!verified) {
-      throw new UnauthorizedException("Invalid Razorpay payment signature.");
+      throw new BadRequestException("Invalid Razorpay payment signature.");
     }
 
     const order = await this.prisma.order.findFirst({
@@ -58,7 +59,12 @@ export class PaymentsController {
       throw new UnauthorizedException("Payment does not belong to this student.");
     }
 
-    return this.settlement.settlePaidOrder(order.id, dto.razorpay_payment_id);
+    const settledOrder = await this.settlement.settlePaidOrder(order.id, dto.razorpay_payment_id);
+
+    return {
+      success: true,
+      order: settledOrder
+    };
   }
 
   @Post("razorpay/webhook")

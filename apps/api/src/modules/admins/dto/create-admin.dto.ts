@@ -12,5 +12,9 @@ export class CreateAdminDto {
   @IsString()
   @Length(8, 20)
   mobile?: string;
-}
 
+  @IsOptional()
+  @IsString()
+  @Length(8, 80)
+  temporaryPassword?: string;
+}

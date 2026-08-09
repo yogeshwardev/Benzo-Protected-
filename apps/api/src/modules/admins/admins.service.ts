@@ -1,5 +1,6 @@
 import { ConflictException, Injectable } from "@nestjs/common";
 import { AccountStatus } from "@prisma/client";
+import * as argon2 from "argon2";
 import { AuthService } from "../auth/auth.service";
 import { PrismaService } from "../prisma/prisma.service";
 import type { CreateAdminDto } from "./dto/create-admin.dto";
@@ -34,7 +35,8 @@ export class AdminsService {
         mobile: dto.mobile,
         name: dto.name,
         role: "ADMIN",
-        status: AccountStatus.PENDING_ACTIVATION,
+        status: dto.temporaryPassword ? AccountStatus.ACTIVE : AccountStatus.PENDING_ACTIVATION,
+        passwordHash: dto.temporaryPassword ? await argon2.hash(dto.temporaryPassword) : undefined,
         adminProfile: { create: {} }
       },
       select: { id: true, email: true, name: true, role: true, status: true }
@@ -42,7 +44,7 @@ export class AdminsService {
 
     return {
       user,
-      activation: await this.authService.createPasswordSetupToken(user.id)
+      activation: dto.temporaryPassword ? undefined : await this.authService.createPasswordSetupToken(user.id)
     };
   }
 }

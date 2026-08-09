@@ -10,6 +10,12 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function useTestAccount(accountEmail: string) {
+    setEmail(accountEmail);
+    setPassword("Benzo@123");
+    setError(null);
+  }
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -28,7 +34,12 @@ export function LoginForm() {
 
       const session = (await response.json()) as AuthSession;
       saveSession(session);
-      window.location.assign(roleHome(session.user.role));
+      const requestedPath = new URLSearchParams(window.location.search).get("next");
+      const destination =
+        session.user.role === "STUDENT" && requestedPath?.startsWith("/") && !requestedPath.startsWith("//")
+          ? requestedPath
+          : roleHome(session.user.role);
+      window.location.assign(destination);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to login.");
     } finally {
@@ -38,10 +49,10 @@ export function LoginForm() {
 
   return (
     <form className="mt-6 grid gap-4" onSubmit={(event) => void submit(event)}>
-      <label className="grid gap-2 text-sm font-medium">
+      <label className="grid gap-2 text-sm font-bold text-slate-800">
         Email
         <input
-          className="h-11 rounded-md border border-[var(--line)] px-3"
+          className="field h-11 rounded-md px-3 outline-none transition"
           type="email"
           autoComplete="email"
           value={email}
@@ -49,10 +60,10 @@ export function LoginForm() {
           required
         />
       </label>
-      <label className="grid gap-2 text-sm font-medium">
+      <label className="grid gap-2 text-sm font-bold text-slate-800">
         Password
         <input
-          className="h-11 rounded-md border border-[var(--line)] px-3"
+          className="field h-11 rounded-md px-3 outline-none transition"
           type="password"
           autoComplete="current-password"
           value={password}
@@ -67,13 +78,29 @@ export function LoginForm() {
         </p>
       ) : null}
       <button
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[var(--brand)] px-5 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70"
+        className="brand-button inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 font-bold disabled:cursor-not-allowed disabled:opacity-70"
         type="submit"
         disabled={loading}
       >
         {loading ? <Loader2 className="animate-spin" size={18} aria-hidden="true" /> : null}
         Login <ArrowRight size={18} aria-hidden="true" />
       </button>
+      <div className="rounded-xl border border-blue-100 bg-[var(--brand-soft)] p-3 text-sm text-slate-800">
+        <p className="font-black">Test accounts</p>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {([
+            ["Student", "student@benzo.test"],
+            ["Instructor", "instructor@benzo.test"],
+            ["Admin", "admin@benzo.test"],
+            ["Super admin", "superadmin@benzo.test"]
+          ] as const).map(([label, accountEmail]) => (
+            <button key={accountEmail} className="h-9 rounded-lg border border-blue-200 bg-white px-2 text-xs font-black text-[var(--brand)]" type="button" onClick={() => useTestAccount(accountEmail)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-[var(--muted)]">All accounts use password Benzo@123</p>
+      </div>
     </form>
   );
 }

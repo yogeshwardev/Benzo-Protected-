@@ -24,6 +24,7 @@ export interface CheckoutQuote {
   referral?: {
     id?: string;
     referrerId: string;
+    code: string;
     createIfMissing: boolean;
   };
 }
@@ -139,7 +140,12 @@ export class PricingService {
   private async resolveReferral(studentId: string, referralCode: string | undefined) {
     const existingReferral = await this.prisma.referral.findUnique({
       where: { referredId: studentId },
-      select: { id: true, referrerId: true, status: true }
+      select: {
+        id: true,
+        referrerId: true,
+        status: true,
+        referrer: { select: { referralCode: true } }
+      }
     });
 
     if (existingReferral?.status === "COMPLETED") {
@@ -152,6 +158,7 @@ export class PricingService {
         referral: {
           id: existingReferral.id,
           referrerId: existingReferral.referrerId,
+          code: existingReferral.referrer.referralCode,
           createIfMissing: false
         }
       };
@@ -163,7 +170,7 @@ export class PricingService {
 
     const referrer = await this.prisma.studentProfile.findUnique({
       where: { referralCode: referralCode.trim().toUpperCase() },
-      select: { id: true }
+      select: { id: true, referralCode: true }
     });
 
     if (!referrer || referrer.id === studentId) {
@@ -178,6 +185,7 @@ export class PricingService {
       discountInPaise: BENZO.referralDiscountInPaise,
       referral: {
         referrerId: referrer.id,
+        code: referrer.referralCode,
         createIfMissing: true
       }
     };
@@ -194,6 +202,6 @@ export class PricingService {
       }
     });
 
-    return result._sum.amountInPaise ?? 0;
+    return Math.max(0, result._sum.amountInPaise ?? 0);
   }
 }

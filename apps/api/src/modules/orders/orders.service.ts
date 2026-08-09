@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PaymentSettlementService } from "../payments/payment-settlement.service";
 import { RazorpayService } from "../payments/razorpay.service";
 import { PricingService } from "../pricing/pricing.service";
@@ -98,6 +98,9 @@ export class OrdersService {
     return {
       order: updatedOrder,
       quote,
+      order_id: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
       payment: {
         provider: "RAZORPAY",
         keyId: this.razorpay.getPublicKey(),
@@ -129,6 +132,68 @@ export class OrdersService {
     });
   }
 
+  async cancelCourseOrder(userId: string, orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id: orderId,
+        student: { userId }
+      },
+      select: { id: true, status: true }
+    });
+
+    if (!order) {
+      throw new NotFoundException("Order not found.");
+    }
+
+    if (order.status === "PAID") {
+      throw new ConflictException("A paid order cannot be cancelled.");
+    }
+
+    if (order.status === "CANCELLED") {
+      return { success: true, order };
+    }
+
+    if (!["CREATED", "PENDING", "FAILED"].includes(order.status)) {
+      throw new ConflictException("Order cannot be cancelled from its current state.");
+    }
+
+    const cancelled = await this.prisma.$transaction(async (tx) => {
+      await tx.walletTransaction.updateMany({
+        where: {
+          type: "PURCHASE_DEBIT",
+          referenceType: "ORDER",
+          referenceId: order.id,
+          status: "PENDING"
+        },
+        data: { status: "REVERSED" }
+      });
+
+      await tx.payment.updateMany({
+        where: {
+          orderId: order.id,
+          status: { in: ["CREATED", "AUTHORIZED"] }
+        },
+        data: { status: "FAILED" }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: userId,
+          action: "ORDER_CANCELLED",
+          entity: "Order",
+          entityId: order.id
+        }
+      });
+
+      return tx.order.update({
+        where: { id: order.id },
+        data: { status: "CANCELLED" }
+      });
+    });
+
+    return { success: true, order: cancelled };
+  }
+
   listOrdersForAdmin() {
     return this.prisma.order.findMany({
       take: 100,
@@ -146,4 +211,3 @@ export class OrdersService {
     });
   }
 }
-

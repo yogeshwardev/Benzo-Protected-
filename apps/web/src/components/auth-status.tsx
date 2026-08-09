@@ -19,22 +19,22 @@ export function AuthStatus() {
 
   if (!session) {
     return (
-      <a className="inline-flex h-10 items-center rounded-md bg-[var(--brand)] px-4 text-sm font-semibold text-white" href="/auth/login">
+      <a className="brand-button inline-flex h-10 items-center rounded-md px-4 text-sm font-bold" href="/auth/login">
         Login
       </a>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--line)] bg-white px-4 py-3">
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-black/10 bg-white px-4 py-3 shadow-sm">
       <div>
-        <p className="text-sm font-semibold">{session.user.name}</p>
+        <p className="text-sm font-bold text-[var(--ink)]">{session.user.name}</p>
         <p className="text-xs text-[var(--muted)]">
-          {session.user.role} · {session.user.email}
+          {session.user.role} / {session.user.email}
         </p>
       </div>
       <button
-        className="ml-auto inline-flex h-9 items-center gap-2 rounded-md border border-[var(--line)] px-3 text-sm font-semibold"
+        className="ml-auto inline-flex h-9 items-center gap-2 rounded-md border border-black/10 px-3 text-sm font-bold"
         type="button"
         onClick={logout}
       >

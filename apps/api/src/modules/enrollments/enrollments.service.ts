@@ -58,7 +58,7 @@ export class EnrollmentsService {
     }
 
     return this.prisma.enrollment.findMany({
-      where: { courseId, active: true },
+      where: { courseId, ...(user.role === "INSTRUCTOR" ? { active: true } : {}) },
       orderBy: { enrolledAt: "desc" },
       include: {
         student: {
@@ -77,5 +77,34 @@ export class EnrollmentsService {
       }
     });
   }
-}
 
+  async updateAccess(actorId: string, id: string, active: boolean) {
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: { id },
+      include: {
+        student: { include: { user: { select: { name: true, email: true } } } },
+        course: { select: { title: true } }
+      }
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException("Enrollment not found.");
+    }
+
+    const updated = await this.prisma.enrollment.update({ where: { id }, data: { active } });
+    await this.prisma.auditLog.create({
+      data: {
+        actorId,
+        action: active ? "COURSE_ACCESS_RESTORED" : "COURSE_ACCESS_REMOVED",
+        entity: "Enrollment",
+        entityId: id,
+        metadata: {
+          studentEmail: enrollment.student.user.email,
+          courseTitle: enrollment.course.title
+        }
+      }
+    });
+
+    return updated;
+  }
+}

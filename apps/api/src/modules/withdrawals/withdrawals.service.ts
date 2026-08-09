@@ -207,6 +207,6 @@ export class WithdrawalsService {
       _sum: { amountInPaise: true }
     });
 
-    return result._sum.amountInPaise ?? 0;
+    return Math.max(0, result._sum.amountInPaise ?? 0);
   }
 }

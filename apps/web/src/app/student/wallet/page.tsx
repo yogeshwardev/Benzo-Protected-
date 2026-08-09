@@ -1,26 +1,27 @@
-import { IndianRupee, WalletCards } from "lucide-react";
-import { BENZO } from "@benzo/shared";
+"use client";
+
+import { useState } from "react";
+import { ArrowDownToLine, WalletCards } from "lucide-react";
+import { EmptyState, ErrorState, LoadingState, PageHeading, StatusBadge } from "@/components/student-ui";
+import { apiRequest, formatDate, formatMoney } from "@/lib/api";
+import { useApi } from "@/lib/use-api";
+
+type Wallet = { balanceInPaise: number; availableInPaise: number; pendingInPaise: number; minimumWithdrawalInPaise: number; withdrawalEligible: boolean; transactions: { id: string; amountInPaise: number; type: string; status: string; createdAt: string }[] };
+type Withdrawal = { id: string; amountInPaise: number; status: string; bankMasked: string; requestedAt: string; adminReference?: string | null; rejectionReason?: string | null };
 
 export default function StudentWalletPage() {
-  return (
-    <main className="mx-auto min-h-screen max-w-7xl px-5 py-8 md:px-8">
-      <h1 className="text-3xl font-semibold">Referral wallet</h1>
-      <section className="mt-8 grid gap-4 md:grid-cols-2">
-        <article className="rounded-lg border border-[var(--line)] bg-white p-5">
-          <WalletCards className="mb-3 text-[var(--brand)]" aria-hidden="true" />
-          <h2 className="font-semibold">Ledger balance</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Balance and availability are derived from wallet transactions, including pending reserves.
-          </p>
-        </article>
-        <article className="rounded-lg border border-[var(--line)] bg-white p-5">
-          <IndianRupee className="mb-3 text-[var(--brand)]" aria-hidden="true" />
-          <h2 className="font-semibold">Minimum withdrawal</h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            INR {BENZO.minimumWithdrawalInPaise / 100} is required before withdrawal.
-          </p>
-        </article>
-      </section>
-    </main>
-  );
+  const wallet = useApi<Wallet>("/wallet/me");
+  const withdrawals = useApi<Withdrawal[]>("/withdrawals/me");
+  const [amount, setAmount] = useState("600"); const [bank, setBank] = useState("XXXX1234"); const [busy, setBusy] = useState(false); const [message, setMessage] = useState<string | null>(null); const [formError, setFormError] = useState<string | null>(null);
+  if (wallet.loading || withdrawals.loading) return <LoadingState label="Loading wallet ledger" />;
+  const pageError = wallet.error || withdrawals.error; if (pageError) return <ErrorState message={pageError} onRetry={() => window.location.reload()} />;
+  async function requestWithdrawal(event: React.FormEvent) { event.preventDefault(); setBusy(true); setFormError(null); setMessage(null); try { await apiRequest("/withdrawals", { method: "POST", body: JSON.stringify({ amountInPaise: Math.round(Number(amount) * 100), bankMasked: bank.trim() }) }); setMessage("Withdrawal request submitted for admin review."); await Promise.all([wallet.reload(), withdrawals.reload()]); } catch (caught) { setFormError(caught instanceof Error ? caught.message : "Unable to request withdrawal."); } finally { setBusy(false); } }
+  return <><PageHeading eyebrow="Rewards" title="Referral wallet" description="Credits are settled after qualifying payments. Wallet purchases and withdrawals reserve funds immediately and keep a complete ledger." />
+    <section className="grid gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-3"><WalletMetric label="Available" value={formatMoney(wallet.data?.availableInPaise ?? 0)} /><WalletMetric label="Settled balance" value={formatMoney(wallet.data?.balanceInPaise ?? 0)} /><WalletMetric label="Pending movement" value={formatMoney(wallet.data?.pendingInPaise ?? 0)} /></section>
+    <section className="mt-7 grid gap-6 xl:grid-cols-[1fr_360px]"><div><h2 className="font-black text-[var(--ink)]">Transaction history</h2>{!wallet.data?.transactions.length ? <div className="mt-4"><EmptyState title="No wallet activity" body="Referral rewards and wallet usage will appear here." /></div> : <div className="mt-4 divide-y divide-[var(--line)] border border-[var(--line)] bg-white">{wallet.data.transactions.map((transaction) => <div key={transaction.id} className="flex items-center justify-between gap-4 p-4"><div><p className="text-sm font-black text-[var(--ink)]">{transaction.type.replaceAll("_", " ")}</p><p className="mt-1 text-xs text-[var(--muted)]">{formatDate(transaction.createdAt, true)}</p></div><div className="text-right"><p className={`font-black ${transaction.amountInPaise >= 0 ? "text-emerald-700" : "text-red-700"}`}>{transaction.amountInPaise >= 0 ? "+" : ""}{formatMoney(transaction.amountInPaise)}</p><div className="mt-1"><StatusBadge value={transaction.status}/></div></div></div>)}</div>}</div>
+      <aside className="border border-[var(--line)] bg-white p-5"><ArrowDownToLine className="text-[var(--brand)]" size={23}/><h2 className="mt-4 font-black text-[var(--ink)]">Request withdrawal</h2><p className="mt-2 text-sm leading-6 text-[var(--muted)]">Minimum {formatMoney(wallet.data?.minimumWithdrawalInPaise ?? 0)}. Admin verifies and transfers funds manually.</p><form className="mt-5 grid gap-4" onSubmit={(event) => void requestWithdrawal(event)}><label className="grid gap-1.5 text-sm font-bold">Amount (INR)<input className="field h-11 px-3" type="number" min={(wallet.data?.minimumWithdrawalInPaise ?? 0)/100} max={(wallet.data?.availableInPaise ?? 0)/100} value={amount} onChange={(event) => setAmount(event.target.value)} required/></label><label className="grid gap-1.5 text-sm font-bold">Masked bank account<input className="field h-11 px-3" value={bank} minLength={4} maxLength={80} onChange={(event) => setBank(event.target.value)} required/></label>{formError ? <p className="text-sm font-bold text-red-700">{formError}</p> : null}{message ? <p className="text-sm font-bold text-emerald-700">{message}</p> : null}<button className="brand-button h-11 px-4 text-sm font-black disabled:opacity-50" disabled={busy || !wallet.data?.withdrawalEligible}>{busy ? "Submitting..." : wallet.data?.withdrawalEligible ? "Submit request" : "Balance below minimum"}</button></form>
+      {withdrawals.data?.length ? <div className="mt-6 border-t border-[var(--line)] pt-5"><p className="text-xs font-black uppercase text-[var(--muted)]">Recent requests</p>{withdrawals.data.slice(0,3).map((item) => <div key={item.id} className="mt-3 flex items-center justify-between gap-3 text-sm"><span>{formatMoney(item.amountInPaise)}</span><StatusBadge value={item.status}/></div>)}</div> : null}</aside></section>
+  </>;
 }
+
+function WalletMetric({ label, value }: { label: string; value: string }) { return <div className="bg-white p-5"><WalletCards className="text-[var(--brand)]" size={21}/><p className="mt-4 text-2xl font-black text-[var(--ink)]">{value}</p><p className="mt-1 text-xs font-bold text-[var(--muted)]">{label}</p></div>; }
