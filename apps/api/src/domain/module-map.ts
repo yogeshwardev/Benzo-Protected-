@@ -7,6 +7,7 @@ export const plannedBackendModules = [
   "courses",
   "schedules",
   "enrollments",
+  "learning",
   "live-classes",
   "attendance",
   "recordings",

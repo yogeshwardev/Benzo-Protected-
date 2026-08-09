@@ -7,11 +7,14 @@ import { EnrollmentsModule } from "./enrollments/enrollments.module";
 import { FinancialModule } from "./financial/financial.module";
 import { InstructorsModule } from "./instructors/instructors.module";
 import { InvoicesModule } from "./invoices/invoices.module";
+import { LearningModule } from "./learning/learning.module";
+import { MaterialsModule } from "./materials/materials.module";
 import { OrdersModule } from "./orders/orders.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { PricingModule } from "./pricing/pricing.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { ReferralsModule } from "./referrals/referrals.module";
+import { RecordingsModule } from "./recordings/recordings.module";
 import { StudentsModule } from "./students/students.module";
 import { UsersModule } from "./users/users.module";
 import { WalletModule } from "./wallet/wallet.module";
@@ -35,7 +38,10 @@ import { WithdrawalsModule } from "./withdrawals/withdrawals.module";
     WalletModule,
     WithdrawalsModule,
     InvoicesModule,
-    FinancialModule
+    FinancialModule,
+    LearningModule,
+    MaterialsModule,
+    RecordingsModule
   ]
 })
 export class ModulesModule {}

@@ -208,11 +208,13 @@ model Course {
   schedules   CourseSchedule[]
   enrollments Enrollment[]
   orders      Order[]
+  modules     CourseModule[]
   lessons     Lesson[]
   materials   Material[]
   courseAssignments Assignment[]
   quizzes     Quiz[]
   liveClasses LiveClass[]
+  recordings  Recording[]
   chatRooms   ChatRoom[]
   certificates Certificate[]
   createdAt   DateTime                     @default(now())
@@ -262,6 +264,7 @@ model Enrollment {
   active      Boolean        @default(true)
   submissions AssignmentSubmission[]
   quizAttempts QuizAttempt[]
+  lessonProgress LessonProgress[]
 
   @@unique([studentId, courseId])
   @@index([courseId, active])
@@ -392,26 +395,74 @@ model WithdrawalRequest {
   @@index([studentId, status])
 }
 
-model Lesson {
-  id        String   @id @default(cuid())
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id])
-  title     String
-  position  Int
-  createdAt DateTime @default(now())
+model CourseModule {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  title       String
+  description String?
+  position    Int
+  lessons     Lesson[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([courseId, position])
+  @@index([courseId])
+}
+
+model Lesson {
+  id              String           @id @default(cuid())
+  courseId        String
+  course          Course           @relation(fields: [courseId], references: [id])
+  moduleId        String?
+  module          CourseModule?    @relation(fields: [moduleId], references: [id])
+  title           String
+  description     String?
+  content         String?
+  position        Int
+  durationSeconds Int?
+  freePreview     Boolean          @default(false)
+  materials       Material[]
+  recordings      Recording[]
+  progress        LessonProgress[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([courseId, position])
+  @@index([moduleId])
+}
+
+model LessonProgress {
+  id                String     @id @default(cuid())
+  enrollmentId      String
+  enrollment        Enrollment @relation(fields: [enrollmentId], references: [id])
+  lessonId          String
+  lesson            Lesson     @relation(fields: [lessonId], references: [id])
+  completed         Boolean    @default(false)
+  progressPercent   Int        @default(0)
+  lastPositionSeconds Int      @default(0)
+  completedAt       DateTime?
+  updatedAt         DateTime   @updatedAt
+
+  @@unique([enrollmentId, lessonId])
+  @@index([lessonId, completed])
 }
 
 model Material {
   id        String   @id @default(cuid())
   courseId  String
   course    Course   @relation(fields: [courseId], references: [id])
+  lessonId  String?
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id])
   title     String
   r2Key     String
   mimeType  String
   sizeBytes Int
+  private   Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  @@index([courseId])
+  @@index([lessonId])
 }
 
 model Assignment {
@@ -524,12 +575,18 @@ model Recording {
   liveClassId     String?
   liveClass       LiveClass?       @relation(fields: [liveClassId], references: [id])
   courseId        String
+  course          Course           @relation(fields: [courseId], references: [id])
+  lessonId        String?
+  lesson          Lesson?          @relation(fields: [lessonId], references: [id])
   provider        String           @default("BUNNY_STREAM")
   providerVideoId String           @unique
   durationSeconds Int?
   thumbnailUrl    String?
   status          ProcessingStatus @default(PENDING)
   createdAt       DateTime         @default(now())
+
+  @@index([courseId])
+  @@index([lessonId])
 }
 
 model InstructorSalaryItem {
