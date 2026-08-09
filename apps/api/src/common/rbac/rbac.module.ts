@@ -8,7 +8,6 @@ import { RolesGuard } from "./roles.guard";
 @Module({
   imports: [JwtModule.register({}), PrismaModule],
   providers: [JwtAuthGuard, RolesGuard],
-  exports: [JwtAuthGuard, RolesGuard]
+  exports: [JwtModule, JwtAuthGuard, RolesGuard]
 })
 export class RbacModule {}
-

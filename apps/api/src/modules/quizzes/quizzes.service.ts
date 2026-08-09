@@ -55,6 +55,8 @@ export class QuizzesService {
       data: {
         courseId: dto.courseId,
         title: dto.title,
+        required: dto.required ?? true,
+        passingPercent: dto.passingPercent ?? 60,
         questions: {
           create: dto.questions.map((question) => ({
             prompt: question.prompt,
@@ -133,4 +135,3 @@ export class QuizzesService {
     });
   }
 }
-

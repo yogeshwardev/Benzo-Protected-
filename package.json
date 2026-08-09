@@ -9,7 +9,7 @@
     "pnpm": ">=10.0.0"
   },
   "scripts": {
-    "dev": "corepack pnpm --parallel --filter @benzo/web --filter @benzo/api dev",
+    "dev": "corepack pnpm --filter @benzo/shared build && corepack pnpm --parallel --filter @benzo/web --filter @benzo/api dev",
     "build": "corepack pnpm -r build",
     "lint": "corepack pnpm -r lint",
     "typecheck": "corepack pnpm -r typecheck",

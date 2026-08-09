@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AccessModule } from "./common/access/access.module";
+import { RateLimitModule } from "./common/rate-limit/rate-limit.module";
 import { RbacModule } from "./common/rbac/rbac.module";
 import { HealthModule } from "./modules/health/health.module";
 import { ModulesModule } from "./modules/modules.module";
@@ -12,6 +13,7 @@ import { ModulesModule } from "./modules/modules.module";
       envFilePath: [".env.local", ".env"]
     }),
     AccessModule,
+    RateLimitModule,
     RbacModule,
     HealthModule,
     ModulesModule

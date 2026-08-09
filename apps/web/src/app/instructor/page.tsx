@@ -7,7 +7,7 @@ export default function InstructorDashboardPage() {
           <article key={item} className="rounded-lg border border-[var(--line)] bg-white p-5">
             <h2 className="font-semibold">{item}</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Scoped to the instructor’s assigned course.
+              Scoped to the instructor's assigned course.
             </p>
           </article>
         ))}

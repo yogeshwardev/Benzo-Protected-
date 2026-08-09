@@ -1,4 +1,4 @@
-import { IsDateString, IsOptional, IsString, Length } from "class-validator";
+import { IsBoolean, IsDateString, IsOptional, IsString, Length } from "class-validator";
 
 export class CreateAssignmentDto {
   @IsString()
@@ -15,5 +15,8 @@ export class CreateAssignmentDto {
   @IsOptional()
   @IsDateString()
   dueAt?: string;
-}
 
+  @IsOptional()
+  @IsBoolean()
+  required?: boolean;
+}

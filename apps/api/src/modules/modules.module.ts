@@ -3,6 +3,8 @@ import { AdminsModule } from "./admins/admins.module";
 import { AssignmentsModule } from "./assignments/assignments.module";
 import { AttendanceModule } from "./attendance/attendance.module";
 import { AuthModule } from "./auth/auth.module";
+import { CertificatesModule } from "./certificates/certificates.module";
+import { ChatModule } from "./chat/chat.module";
 import { CouponsModule } from "./coupons/coupons.module";
 import { CoursesModule } from "./courses/courses.module";
 import { EnrollmentsModule } from "./enrollments/enrollments.module";
@@ -12,6 +14,7 @@ import { InvoicesModule } from "./invoices/invoices.module";
 import { LearningModule } from "./learning/learning.module";
 import { LiveClassesModule } from "./live-classes/live-classes.module";
 import { MaterialsModule } from "./materials/materials.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 import { OrdersModule } from "./orders/orders.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { PricingModule } from "./pricing/pricing.module";
@@ -51,7 +54,10 @@ import { WithdrawalsModule } from "./withdrawals/withdrawals.module";
     AttendanceModule,
     AssignmentsModule,
     QuizzesModule,
-    SalaryModule
+    SalaryModule,
+    ChatModule,
+    NotificationsModule,
+    CertificatesModule
   ]
 })
 export class ModulesModule {}

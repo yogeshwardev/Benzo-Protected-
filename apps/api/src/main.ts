@@ -1,14 +1,16 @@
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true, rawBody: true });
   const config = app.get(ConfigService);
   const webOrigin = config.get<string>("WEB_ORIGIN", "http://localhost:3000");
 
+  app.set("trust proxy", 1);
   app.use(helmet());
   app.enableCors({
     origin: webOrigin,

@@ -2,11 +2,10 @@
   "name": "@benzo/shared",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
@@ -20,4 +19,3 @@
     "vitest": "^3.2.4"
   }
 }
-

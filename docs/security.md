@@ -14,9 +14,16 @@
 
 - Argon2 password hashing.
 - Access token plus rotating refresh token strategy.
-- Rate limiting on auth, checkout, coupons, referrals, withdrawals, and sensitive admin APIs.
+- In-process rate limiting on auth, checkout, payment verification, withdrawals, and sensitive admin APIs.
 - Audit logs for privileged and financial actions.
-- Structured logs with request IDs and redaction.
-- Production Swagger restricted or disabled.
+- Backend DTO validation with whitelisting and non-whitelisted field rejection.
+- Public certificate verification that refuses revoked certificates.
+- Course-scoped chat and announcement authorization.
 - Security headers at Nginx and app layers.
 
+## Remaining Hardening
+
+- Move rate limiting to Redis before running multiple API replicas.
+- Add structured request logging with request IDs and redaction.
+- Keep production Swagger disabled or access-restricted if API docs are exposed.
+- Add browser E2E and backend integration tests for critical business journeys.

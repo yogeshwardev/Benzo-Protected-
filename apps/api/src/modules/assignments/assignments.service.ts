@@ -38,7 +38,8 @@ export class AssignmentsService {
         courseId: dto.courseId,
         title: dto.title,
         description: dto.description,
-        dueAt: dto.dueAt ? new Date(dto.dueAt) : undefined
+        dueAt: dto.dueAt ? new Date(dto.dueAt) : undefined,
+        required: dto.required ?? true
       }
     });
   }
@@ -122,4 +123,3 @@ export class AssignmentsService {
     return assignment;
   }
 }
-
