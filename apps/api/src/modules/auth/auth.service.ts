@@ -33,7 +33,9 @@ export class AuthService {
     }
 
     const referrer = dto.referralCode
-      ? await this.prisma.studentProfile.findUnique({ where: { referralCode: dto.referralCode } })
+      ? await this.prisma.studentProfile.findUnique({
+          where: { referralCode: dto.referralCode.trim().toUpperCase() }
+        })
       : null;
 
     if (dto.referralCode && !referrer) {

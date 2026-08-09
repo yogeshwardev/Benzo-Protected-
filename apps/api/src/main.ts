@@ -5,7 +5,7 @@ import helmet from "helmet";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
   const config = app.get(ConfigService);
   const webOrigin = config.get<string>("WEB_ORIGIN", "http://localhost:3000");
 
@@ -32,4 +32,3 @@ async function bootstrap() {
 }
 
 void bootstrap();
-

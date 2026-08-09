@@ -273,6 +273,8 @@ model Order {
   student               StudentProfile @relation(fields: [studentId], references: [id])
   courseId              String
   course                Course         @relation(fields: [courseId], references: [id])
+  couponId              String?
+  coupon                Coupon?        @relation(fields: [couponId], references: [id])
   status                OrderStatus    @default(CREATED)
   baseAmountInPaise     Int
   couponDiscountInPaise Int            @default(0)
@@ -284,11 +286,13 @@ model Order {
   enrollment            Enrollment?
   referral              Referral?
   invoice               Invoice?
+  couponRedemption      CouponRedemption?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
   @@index([studentId, status])
   @@index([courseId, status])
+  @@index([couponId])
 }
 
 model Payment {
@@ -327,6 +331,7 @@ model Coupon {
   startsAt          DateTime?
   endsAt            DateTime?
   redemptions       CouponRedemption[]
+  orders            Order[]
 }
 
 model CouponRedemption {
@@ -334,6 +339,7 @@ model CouponRedemption {
   couponId  String
   coupon    Coupon   @relation(fields: [couponId], references: [id])
   orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
   studentId String
   createdAt DateTime @default(now())
 
@@ -617,4 +623,3 @@ model AuditLog {
   @@index([action, createdAt])
   @@index([entity, entityId])
 }
-
