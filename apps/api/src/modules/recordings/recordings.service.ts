@@ -3,6 +3,7 @@ import { CourseAccessService } from "../../common/access/course-access.service";
 import type { CurrentUser } from "../../common/rbac/current-user";
 import { PrismaService } from "../prisma/prisma.service";
 import type { CreateRecordingDto } from "./dto/create-recording.dto";
+import type { UpdateRecordingStatusDto } from "./dto/update-recording-status.dto";
 
 @Injectable()
 export class RecordingsService {
@@ -76,6 +77,27 @@ export class RecordingsService {
     });
   }
 
+  async updateRecordingStatus(user: CurrentUser, id: string, dto: UpdateRecordingStatusDto) {
+    const recording = await this.prisma.recording.findUnique({
+      where: { id },
+      select: { id: true, courseId: true }
+    });
+
+    if (!recording) {
+      throw new NotFoundException("Recording not found.");
+    }
+
+    await this.access.assertCanManageCourse(user, recording.courseId);
+
+    return this.prisma.recording.update({
+      where: { id },
+      data: {
+        status: dto.status,
+        thumbnailUrl: dto.thumbnailUrl
+      }
+    });
+  }
+
   private async assertLessonBelongsToCourse(lessonId: string | undefined, courseId: string) {
     if (!lessonId) {
       return;
@@ -114,4 +136,3 @@ export class RecordingsService {
     }
   }
 }
-
