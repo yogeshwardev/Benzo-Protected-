@@ -19,6 +19,7 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { QuizzesModule } from "./quizzes/quizzes.module";
 import { ReferralsModule } from "./referrals/referrals.module";
 import { RecordingsModule } from "./recordings/recordings.module";
+import { SalaryModule } from "./salary/salary.module";
 import { StudentsModule } from "./students/students.module";
 import { UsersModule } from "./users/users.module";
 import { WalletModule } from "./wallet/wallet.module";
@@ -49,7 +50,8 @@ import { WithdrawalsModule } from "./withdrawals/withdrawals.module";
     LiveClassesModule,
     AttendanceModule,
     AssignmentsModule,
-    QuizzesModule
+    QuizzesModule,
+    SalaryModule
   ]
 })
 export class ModulesModule {}

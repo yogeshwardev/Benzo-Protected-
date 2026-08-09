@@ -11,6 +11,7 @@
 - Phase 5 learning foundation with course modules, lessons, lesson progress, private material metadata, recording metadata, and enrollment/assignment-scoped content access.
 - Phase 6 live class foundation with LiveKit room token generation, class creation/status, join windows, attendance sessions, official attendance summaries, and recording status lifecycle updates.
 - Phase 7 academics foundation with assignments, submission review/resubmission flow, MCQ quiz creation, quiz attempts, and backend auto-grading.
+- Phase 8 business operations foundation with instructor attendance views, salary item generation from attendance summaries, salary approval/rejection, payout creation, and salary audit logs.
 
 ## Still Required Before Real Launch
 
@@ -20,3 +21,4 @@
 - E2E tests for registration, login, RBAC, course creation, instructor assignment, checkout, duplicate webhooks, wallet ledger, withdrawals, financial exports, learning access, live class joins, attendance summaries, assignments, quizzes, and enrollment access.
 - Real admin forms wired to authenticated API clients.
 - Refund-safe records, Excel/PDF exports, and invoice PDF generation.
+- Salary exception handling, payroll exports, and richer salary filters.
