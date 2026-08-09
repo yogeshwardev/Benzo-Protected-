@@ -4,21 +4,24 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://benzo.co.in"),
   title: {
-    default: "BENZO",
+    default: "BENZO - Live Technology Courses",
     template: "%s | BENZO"
   },
-  description: "Affordable instructor-led technology courses for practical beginners.",
+  description:
+    "Live instructor-led technology courses with attendance, assignments, quizzes, chat support, payments, referrals, and verified certificates.",
   openGraph: {
-    title: "BENZO",
-    description: "Live, practical technology courses with accountability.",
+    title: "BENZO - Live Technology Courses",
+    description: "Practical coding courses with mentors, attendance, assignments, and verified certificates.",
     url: "https://benzo.co.in",
     siteName: "BENZO",
-    type: "website"
+    type: "website",
+    images: ["/images/benzo-learning-dashboard.png"]
   },
   twitter: {
     card: "summary_large_image",
-    title: "BENZO",
-    description: "Affordable instructor-led technology courses for practical beginners."
+    title: "BENZO - Live Technology Courses",
+    description: "Practical coding courses with mentors, attendance, assignments, and verified certificates.",
+    images: ["/images/benzo-learning-dashboard.png"]
   }
 };
 
@@ -29,4 +32,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-
