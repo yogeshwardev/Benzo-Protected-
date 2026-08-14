@@ -1,5 +1,5 @@
 "use client";
-
+import { getCourseImage } from "@/lib/course-catalog";
 import { useEffect, useState } from "react";
 import { MessageCircle, RefreshCw, Send } from "lucide-react";
 import { EmptyState, ErrorState, LoadingState, PageHeading } from "@/components/student-ui";

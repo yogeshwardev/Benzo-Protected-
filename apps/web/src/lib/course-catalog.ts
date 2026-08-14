@@ -21,6 +21,7 @@ export type CourseCatalogItem = {
   outcomes: string[];
   accent: string;
   Icon: LucideIcon;
+  image: string;
 };
 
 export const courseCatalog: CourseCatalogItem[] = [
@@ -32,7 +33,8 @@ export const courseCatalog: CourseCatalogItem[] = [
     summary: "Start with logic building, memory basics, loops, arrays, and practical C programs.",
     outcomes: ["Build programming fundamentals", "Practice daily problem solving", "Prepare for core CS subjects"],
     accent: "from-teal-600 to-cyan-500",
-    Icon: FileTerminal
+    Icon: FileTerminal,
+    image: "/images/c-programming.png",
   },
   {
     title: "Python",
@@ -42,7 +44,8 @@ export const courseCatalog: CourseCatalogItem[] = [
     summary: "Learn Python from scratch through scripts, automation, data handling, and mini projects.",
     outcomes: ["Write clean Python programs", "Automate everyday tasks", "Create beginner projects"],
     accent: "from-amber-500 to-orange-500",
-    Icon: Bot
+    Icon: Bot,
+    image: "/images/python.png",
   },
   {
     title: "Java",
@@ -52,7 +55,8 @@ export const courseCatalog: CourseCatalogItem[] = [
     summary: "Master Java foundations, OOP, collections, and interview-ready coding habits.",
     outcomes: ["Understand OOP deeply", "Build Java console apps", "Strengthen interview basics"],
     accent: "from-red-500 to-orange-500",
-    Icon: Coffee
+    Icon: Coffee,
+    image: "/images/java.png",
   },
   {
     title: "C++",
@@ -62,7 +66,8 @@ export const courseCatalog: CourseCatalogItem[] = [
     summary: "Use C++ for logic, STL basics, problem solving, and stronger programming confidence.",
     outcomes: ["Practice STL foundations", "Solve coding exercises", "Improve speed and accuracy"],
     accent: "from-blue-600 to-indigo-500",
-    Icon: Cpu
+    Icon: Cpu,
+    image: "/images/c++.png",
   },
   {
     title: "Web Development Using AI",
@@ -72,7 +77,8 @@ export const courseCatalog: CourseCatalogItem[] = [
     summary: "Build modern websites while using AI tools responsibly for planning, code, and debugging.",
     outcomes: ["Create responsive pages", "Use AI-assisted workflows", "Ship portfolio-ready work"],
     accent: "from-violet-600 to-fuchsia-500",
-    Icon: Braces
+    Icon: Braces,
+    image: "/images/web-development-using-ai.png",
   },
   {
     title: "DevOps",
@@ -82,7 +88,8 @@ export const courseCatalog: CourseCatalogItem[] = [
     summary: "Learn Linux, Git, CI/CD, Docker basics, and deployment workflows through live practice.",
     outcomes: ["Understand deployment flow", "Practice containers and CI", "Operate real project pipelines"],
     accent: "from-emerald-600 to-teal-500",
-    Icon: ServerCog
+    Icon: ServerCog,
+    image: "/images/devops.png",
   },
   {
     title: "Linux Administration",
@@ -92,7 +99,8 @@ export const courseCatalog: CourseCatalogItem[] = [
     summary: "Operate Linux systems with shell commands, users, permissions, services, and troubleshooting.",
     outcomes: ["Use the command line", "Manage services and users", "Troubleshoot Linux basics"],
     accent: "from-slate-700 to-teal-600",
-    Icon: TerminalSquare
+    Icon: TerminalSquare,
+    image: "/images/linux-administration.png"
   }
 ];
 
@@ -105,4 +113,9 @@ export const courseCategories: Array<"All" | CourseCategory> = [
 
 export function getCourseBySlug(slug: string) {
   return courseCatalog.find((course) => course.slug === slug);
+}
+export function getCourseImage(slug: string, fallback?: string | null) {
+  const course = courseCatalog.find((item) => item.slug === slug);
+
+  return course?.image || fallback || "/images/python.png";
 }
