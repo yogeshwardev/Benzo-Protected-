@@ -82,7 +82,61 @@ export default function CoursesPage() {
           </aside>
         </div>
       </section>
+      <section id="how" className="border-y border-[var(--line)] bg-white">
+        <div className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+          <div className="max-w-3xl">
+            <p className="text-sm font-black text-[var(--brand)]">
+              How BENZO Works
+            </p>
 
+            <h2 className="mt-2 text-3xl font-black leading-tight text-[var(--ink)] md:text-4xl">
+              A simple learning flow from class to certificate.
+            </h2>
+
+            <p className="mt-3 text-base leading-7 text-[var(--muted)]">
+              The experience is designed around what students need to do next, not around admin screens.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Choose a course",
+                body: "Start with programming foundations, web development, Linux, or DevOps from the BENZO catalog."
+              },
+              {
+                title: "Attend live classes",
+                body: "Join scheduled sessions, ask questions, and keep attendance tied to official class time."
+              },
+              {
+                title: "Practice and submit",
+                body: "Use recordings, materials, assignments, and quizzes to build proof that you learned."
+              },
+              {
+                title: "Earn completion proof",
+                body: "Certificates are issued only when progress, attendance, and assessment rules are satisfied."
+              }
+            ].map((item, index) => (
+              <article
+                key={item.title}
+                className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_6px_22px_rgba(15,23,42,0.04)] transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_16px_34px_rgba(37,99,235,0.08)]"
+              >
+                <span className="grid size-10 place-items-center rounded-full bg-[var(--brand)] text-sm font-black text-white">
+                  {index + 1}
+                </span>
+
+                <h3 className="mt-5 text-lg font-black text-[var(--ink)]">
+                  {item.title}
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                  {item.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
       <div className="mx-auto max-w-7xl px-5 py-10 md:px-8">
         <CourseBrowser />
       </div>

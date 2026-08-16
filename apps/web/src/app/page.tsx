@@ -1,4 +1,5 @@
-import {
+import { CourseBrowser } from "./courses/course-browser";
+import{
   ArrowRight,
   BadgeCheck,
   BookOpenCheck,
@@ -116,16 +117,16 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-5 py-14 md:grid-cols-[0.9fr_1.1fr] md:px-8 lg:py-20">
+      <section className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-[0.95fr_1.05fr] md:px-8 lg:py-24">
         <div className="self-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-[var(--brand-soft)] px-4 py-2 text-sm font-bold text-[var(--brand)]">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-extrabold tracking-wide text-blue-700">
             <Sparkles size={16} aria-hidden="true" />
             Premium live tech learning at an affordable price
           </div>
-          <h1 className="max-w-3xl text-4xl font-black leading-[1.05] text-[var(--ink)] sm:text-5xl lg:text-6xl">
+          <h1 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
             Learn Tech Live. Build Skills That Actually Matter.
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--muted)]">
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-500">
             Live instructor-led programming and technology courses with recordings, assignments,
             quizzes, chat support, secure payments, and certificates.
           </p>
@@ -133,15 +134,18 @@ export default function Home() {
             <a className="brand-button inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-sm font-black" href="/courses">
               Explore Courses <ArrowRight size={18} aria-hidden="true" />
             </a>
-            <a className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[var(--line)] bg-white px-6 text-sm font-black text-[var(--ink)]" href="#how">
-              <PlayCircle size={18} aria-hidden="true" />
-              See How It Works
-            </a>
+            <a
+  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-extrabold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+  href="#how"
+>
+  <PlayCircle size={18} aria-hidden="true" />
+  See How It Works
+</a>
           </div>
         </div>
 
-        <div className="surface rounded-2xl p-3">
-          <div className="rounded-xl border border-[var(--line)] bg-white">
+        <div className="surface rounded-3xl p-3">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-4">
               <div>
                 <p className="text-xs font-black text-[var(--brand)]">Student dashboard</p>
@@ -181,7 +185,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-y border-[var(--line)] bg-white">
+      <section className="border-y border-slate-200 bg-white">
         <div className="mx-auto grid max-w-7xl gap-px bg-[var(--line)] px-5 py-px sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 md:px-8">
           {trustItems.map(([Icon, label]) => (
             <div key={label} className="flex items-center gap-3 bg-white p-4">
@@ -194,34 +198,10 @@ export default function Home() {
 
       <section id="courses" className="mx-auto max-w-7xl px-5 py-16 md:px-8">
         <SectionIntro eyebrow="Featured Courses" title="Start with practical technology foundations." body="No fake ratings, no inflated claims. Just the current BENZO course catalog with clear outcomes and pricing." />
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {courseCatalog.slice(0, 6).map((course) => {
-            const Icon = course.Icon;
-            return (
-              <article key={course.slug} className="app-card overflow-hidden">
-                <div className={`h-1.5 bg-gradient-to-r ${course.accent}`} />
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="grid size-12 place-items-center rounded-xl bg-[var(--brand-soft)] text-[var(--brand)]">
-                      <Icon size={23} aria-hidden="true" />
-                    </span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">Beginner</span>
-                  </div>
-                  <h3 className="mt-5 text-xl font-black text-[var(--ink)]">{course.title}</h3>
-                  <p className="mt-2 min-h-16 text-sm leading-6 text-[var(--muted)]">{course.summary}</p>
-                  <div className="mt-5 grid gap-2 text-sm font-bold text-slate-700">
-                    <span className="flex items-center gap-2"><CalendarClock size={16} className="text-[var(--brand)]" /> Live {course.schedule}</span>
-                    <span className="flex items-center gap-2"><GraduationCap size={16} className="text-[var(--brand)]" /> Instructor-led</span>
-                    <span className="flex items-center gap-2"><IndianRupee size={16} className="text-[var(--brand)]" /> INR {coursePriceInInr}</span>
-                  </div>
-                  <a className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[var(--ink)] px-4 text-sm font-black text-white" href={`/courses/${course.slug}`}>
-                    View Course <ArrowRight size={17} aria-hidden="true" />
-                  </a>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+        <div className="mt-8">
+  <CourseBrowser />
+</div>
+              
       </section>
 
       <section id="how" className="border-y border-[var(--line)] bg-white">
@@ -229,13 +209,14 @@ export default function Home() {
           <SectionIntro eyebrow="How BENZO Works" title="A simple learning flow from class to certificate." body="The experience is designed around what students need to do next, not around admin screens." />
           <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {howItWorks.map((item, index) => (
-              <article key={item.title} className="rounded-xl border border-[var(--line)] bg-[#fbfcff] p-5">
-                <span className="grid size-10 place-items-center rounded-full bg-[var(--brand)] text-sm font-black text-white">{index + 1}</span>
-                <h3 className="mt-5 text-lg font-black text-[var(--ink)]">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.body}</p>
-              </article>
-            ))}
-          </div>
+              <article key={item.title}  className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_6px_22px_rgba(15,23,42,0.04)] transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_16px_34px_rgba(37,99,235,0.08)]"
+                >
+                  <span className="grid size-10 place-items-center rounded-full bg-[var(--brand)] text-sm font-black text-white">{index + 1}</span>
+                  <h3 className="mt-5 text-lg font-black text-[var(--ink)]">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.body}</p>
+                </article>
+              ))}
+            </div>
         </div>
       </section>
 
@@ -254,7 +235,7 @@ export default function Home() {
 
       <section className="border-y border-[var(--line)] bg-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-16 md:grid-cols-2 md:px-8">
-          <div className="rounded-2xl bg-[var(--brand)] p-7 text-white">
+          <div className="rounded-3xl bg-blue-600 p-8 text-white shadow-[0_18px_40px_rgba(37,99,235,0.18)]">
             <WalletCards size={30} aria-hidden="true" />
             <h2 className="mt-5 text-3xl font-black">Referral rewards that stay transparent.</h2>
             <p className="mt-4 leading-7 text-white/80">
@@ -284,17 +265,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="support" className="bg-[var(--ink)] text-white">
+      <section id="support" className="border-y border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-14 md:flex-row md:items-center md:justify-between md:px-8">
           <div>
-            <p className="text-sm font-black text-cyan-300">Support and enrollment</p>
+            <p className="text-sm font-black text-blue-600">Support and enrollment</p>
             <h2 className="mt-2 text-3xl font-black">Ready to explore a BENZO course?</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-950/65">
               Create a student account, choose a course, and complete secure checkout when you are ready.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <a className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-white px-6 text-sm font-black text-[var(--ink)]" href="/auth/register">
+            <a className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 text-sm font-black text-white" href="/auth/register">
               Get Started <ArrowRight size={18} aria-hidden="true" />
             </a>
             <a className="inline-flex h-12 items-center justify-center rounded-lg border border-white/20 px-6 text-sm font-black text-white" href="/auth/login">Login</a>

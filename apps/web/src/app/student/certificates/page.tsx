@@ -1,5 +1,5 @@
 "use client";
-
+import { getCourseImage } from "@/lib/course-catalog";
 import { Award, ExternalLink } from "lucide-react";
 import { EmptyState, ErrorState, LoadingState, PageHeading, StatusBadge } from "@/components/student-ui";
 import { formatDate } from "@/lib/api";
